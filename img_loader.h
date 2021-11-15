@@ -22,6 +22,7 @@ typedef enum {
     IMG_ZIP_ID,
     IMG_CURL_ID,
     IMG_PIPE_ID,
+    IMG_LIBSPNG_ID,
 } ImgLoaderId;
 
 

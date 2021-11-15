@@ -27,6 +27,10 @@
 #include "pipe_loader.h"
 #endif
 
+#ifndef NO_LIBSPNG_LOADER
+#include "libspng_loader.h"
+#endif
+
 #define RUN_FUNC(DATA, LOADER, FUNC) do { \
     if(getLoaderEnabled(DATA->LOADER)->FUNC)getLoaderEnabled(DATA->LOADER)->FUNC(data); \
     } while(0)
@@ -44,6 +48,9 @@ typedef struct {
 ImageLoader img_loaders [] = {
 #ifndef NO_DIR_LOADER
     {IMG_DIR_ID, dir_load, .img_close_child=dir_close_child, .multi_loader = 1},
+#endif
+#ifndef NO_LIBSPNG_LOADER
+    {IMG_LIBSPNG_ID, libspng_load, libspng_close},
 #endif
 #ifndef NO_IMLIB_LOADER
     {IMG_IMLIB_ID, imlib_load, imlib_close},
