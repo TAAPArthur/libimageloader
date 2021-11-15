@@ -136,6 +136,7 @@ void closeImage(ImageData* data, bool force) {
     if(--data->ref_count == 0 &&  !(data->flags & IMG_DATA_KEEP_OPEN)|| force) {
         RUN_FUNC(data, loader_index, img_close);
         data->image_data = NULL;
+        data->data = NULL;
     }
 }
 
@@ -143,7 +144,7 @@ void freeImageData(ImageContext*context, ImageData* data) {
     if(data->parent_loader_index) {
         RUN_FUNC(data, parent_loader_index, img_close_child);
     }
-    if(data->image_data)
+    if(data->data)
         closeImage(data, 1);
 
     free(data);
@@ -187,7 +188,7 @@ ImageData* _loadImage(ImageContext* context, ImageData*data, bool multi_lib_only
 }
 
 ImageData* loadImage(ImageContext* context, ImageData*data) {
-    if(data->image_data || _loadImage(context, data, 0)) {
+    if(data->data || _loadImage(context, data, 0)) {
         data->ref_count++;
         return data;
     }
@@ -203,7 +204,7 @@ struct ImageData* openImage(struct ImageContext* context, int index, struct Imag
         data = loadImage(context, context->data[index]);
         int remove = 0;
         int diff = context->num - num;
-        if((!data || !data->image_data) && context->flags & REMOVE_INVALID) {
+        if((!data || !data->data) && context->flags & REMOVE_INVALID) {
             freeImageData(context, context->data[index]);
             context->data[index] = NULL;
             removeInvalid(context);
