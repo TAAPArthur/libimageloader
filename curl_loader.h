@@ -13,7 +13,7 @@ static size_t write_data(void *ptr, size_t size, size_t nmemb, int*fd) {
 static int curl_counter;
 
 int curl_load(ImageContext* context, int _, ImageData* parent) {
-    if(!parent->parent_loader_index && strstr(parent->name, "http") != parent->name)
+    if(!parent->parent_loader_index || strstr(parent->name, "http") != parent->name)
         return -1;
     if(!curl_counter++)
         curl_global_init(CURL_GLOBAL_ALL);
