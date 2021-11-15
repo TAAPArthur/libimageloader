@@ -23,6 +23,10 @@
 #include "curl_loader.h"
 #endif
 
+#ifndef NO_PIPE_LOADER
+#include "pipe_loader.h"
+#endif
+
 #define RUN_FUNC(DATA, LOADER, FUNC) do { \
     if(getLoaderEnabled(DATA->LOADER)->FUNC)getLoaderEnabled(DATA->LOADER)->FUNC(data); \
     } while(0)
@@ -52,10 +56,14 @@ ImageLoader img_loaders [] = {
 #endif
 };
 
+ImageLoader pipe_loader = {IMG_PIPE_ID, pipe_load };
+
 ImageLoader* getLoaderEnabled(ImgLoaderId id){
     for(int i = 0; i < sizeof(img_loaders)/sizeof(img_loaders[0]); i++)
         if(img_loaders[i].id == id)
             return &img_loaders[i];
+    if(id == IMG_PIPE_ID)
+        return &pipe_loader;
     return NULL;
 }
 
@@ -150,17 +158,21 @@ void setLoaderEnabled(ImgLoaderId id, int value){
     getLoaderEnabled(id)->disabled = !value;
 }
 
+int loadImageWithLoader(ImageContext* context, int fd, ImageData*data, ImageLoader*img_loader) {
+    int ret = img_loader->img_open(context, fd, data);
+    DEBUG("Loader %d returned %d\n", img_loader->id, ret);
+    if (ret == 0)
+        data->loader_index = img_loader->id;
+    return ret;
+}
+
 ImageData* _loadImage(ImageContext* context, ImageData*data, bool multi_lib_only) {
     int fd = getFD(data);
     for(int i = 0; i < sizeof(img_loaders)/sizeof(img_loaders[0]); i++) {
         if(multi_lib_only && !img_loaders[i].multi_loader || img_loaders[i].disabled)
             continue;
-        int ret = img_loaders[i].img_open(context, fd, data);
-        DEBUG("Loader %d returned %d\n", img_loaders[i].id, ret);
-        if (ret == 0) {
-            data->loader_index = i;
+        if(loadImageWithLoader(context, fd, data, &img_loaders[i]) == 0)
             return data;
-        }
     }
     if(fd != -1)
         close(fd);
@@ -220,12 +232,20 @@ ImageData* addFile(ImageContext* context, const char* file_name, ImgLoaderId  pa
     return data;
 }
 
+int addFromPipe(ImageContext* context, int fd, const char* name) {
+    ImageData* data = addFile(context, name, 0);
+    return loadImageWithLoader(context, fd, data, &pipe_loader);
+}
+
 ImageContext* createContext(const char** file_names, int num, int flags) {
     ImageContext* context = calloc(1, sizeof(ImageContext));
     context->flags = flags;
     context->size = num ? num : 16;
-    for(int i = 0; (!num || i < num) && file_names[i]; i++) {
-        addFile(context, file_names[i], IMG_INVALID_ID);
+    for(int i = 0; (!num || i < num) && file_names && file_names[i]; i++) {
+        if(file_names[i][0] == '-' && !file_names[i][1])
+            addFromPipe(context, STDIN_FILENO, "stdin");
+        else
+            addFile(context, file_names[i], IMG_INVALID_ID);
     }
     return context;
 }
