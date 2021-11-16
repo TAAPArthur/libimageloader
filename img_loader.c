@@ -38,7 +38,6 @@
 #define MULTI_LOADER   (1 << 0)
 #define NO_SEEK        (1 << 1)
 #define NO_FD          (1 << 2)
-#define DISABLED       (1 << 3)
 
 typedef struct {
     int id;
@@ -165,13 +164,6 @@ void destroyContext(ImageContext*context) {
     free(context);
 }
 
-void setLoaderEnabled(ImgLoaderId id, int value){
-    if(value)
-        getLoaderEnabled(id)->flags &= ~DISABLED;
-    else
-        getLoaderEnabled(id)->flags |= DISABLED;
-}
-
 int loadImageWithLoader(ImageContext* context, int fd, ImageData*data, ImageLoader*img_loader) {
     int ret = img_loader->img_open(context, fd, data);
     LOG("Loader %d returned %d\n", img_loader->id, ret);
@@ -183,7 +175,7 @@ int loadImageWithLoader(ImageContext* context, int fd, ImageData*data, ImageLoad
 ImageData* _loadImage(ImageContext* context, ImageData*data, bool multi_lib_only) {
     int fd = getFD(data);
     for(int i = 0; i < sizeof(img_loaders)/sizeof(img_loaders[0]); i++) {
-        if(multi_lib_only && (img_loaders[i].flags & MULTI_LOADER) || img_loaders[i].flags & DISABLED)
+        if(multi_lib_only && (img_loaders[i].flags & MULTI_LOADER))
             continue;
         if(fd == -1 && !(img_loaders[i].flags & NO_FD))
             continue;
