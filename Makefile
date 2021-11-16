@@ -1,4 +1,4 @@
--include auto_detect.mk
+-include config.mk
 
 CFLAGS += -fPIC
 PRG=img_loader
