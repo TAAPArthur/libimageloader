@@ -35,19 +35,22 @@
     if(getLoaderEnabled(DATA->LOADER)->FUNC)getLoaderEnabled(DATA->LOADER)->FUNC(data); \
     } while(0)
 
+#define MULTI_LOADER   (1 << 0)
+#define NO_SEEK        (1 << 1)
+#define NO_FD          (1 << 2)
+#define DISABLED       (1 << 3)
+
 typedef struct {
     int id;
     int (*img_open)(ImageContext*, int fd, ImageData*);
     void (*img_close)(ImageData*);
     void (*img_close_child)(ImageData*);
-    bool disabled;
-    bool multi_loader;
-    bool early_loader;
+    uint8_t flags;
 } ImageLoader;
 
-ImageLoader img_loaders [] = {
+ImageLoader img_loaders[] = {
 #ifndef NO_DIR_LOADER
-    {IMG_DIR_ID, dir_load, .img_close_child=dir_close_child, .multi_loader = 1},
+    {IMG_DIR_ID, dir_load, .img_close_child=dir_close_child, .flags = MULTI_LOADER | NO_SEEK},
 #endif
 #ifndef NO_LIBSPNG_LOADER
     {IMG_LIBSPNG_ID, libspng_load, libspng_close},
@@ -56,10 +59,10 @@ ImageLoader img_loaders [] = {
     {IMG_IMLIB_ID, imlib_load, imlib_close},
 #endif
 #ifndef NO_ZIP_LOADER
-    {IMG_ZIP_ID, load_zip,  NULL, .img_close_child=zip_close_child, .multi_loader = 1},
+    {IMG_ZIP_ID, load_zip, .img_close_child=zip_close_child, .flags = MULTI_LOADER},
 #endif
 #ifndef NO_CURL_LOADER
-    {IMG_CURL_ID, curl_load,  .img_close_child=curl_close, .multi_loader = 1, .early_loader=1},
+    {IMG_CURL_ID, curl_load, .img_close_child=curl_close, .flags = MULTI_LOADER | NO_FD | NO_SEEK},
 #endif
 };
 
@@ -163,7 +166,10 @@ void destroyContext(ImageContext*context) {
 }
 
 void setLoaderEnabled(ImgLoaderId id, int value){
-    getLoaderEnabled(id)->disabled = !value;
+    if(value)
+        getLoaderEnabled(id)->flags &= ~DISABLED;
+    else
+        getLoaderEnabled(id)->flags |= DISABLED;
 }
 
 int loadImageWithLoader(ImageContext* context, int fd, ImageData*data, ImageLoader*img_loader) {
@@ -177,10 +183,14 @@ int loadImageWithLoader(ImageContext* context, int fd, ImageData*data, ImageLoad
 ImageData* _loadImage(ImageContext* context, ImageData*data, bool multi_lib_only) {
     int fd = getFD(data);
     for(int i = 0; i < sizeof(img_loaders)/sizeof(img_loaders[0]); i++) {
-        if(multi_lib_only && !img_loaders[i].multi_loader || img_loaders[i].disabled)
+        if(multi_lib_only && (img_loaders[i].flags & MULTI_LOADER) || img_loaders[i].flags & DISABLED)
+            continue;
+        if(fd == -1 && !(img_loaders[i].flags & NO_FD))
             continue;
         if(loadImageWithLoader(context, fd, data, &img_loaders[i]) == 0)
             return data;
+        if(!(img_loaders[i].flags & NO_SEEK))
+            lseek(fd, 0, SEEK_SET);
     }
     if(fd != -1)
         close(fd);
