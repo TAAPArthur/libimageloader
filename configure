@@ -1,8 +1,19 @@
-#!/bin/sh -xe
+#!/bin/sh -e
 for lib in Imlib2 spng zip curl; do
-    if  echo "int main(){}" | ${CC:-cc} "-l$lib" -o /dev/null -x c - 2>/dev/null ; then
-        echo "LDFLAGS += -l${lib}";
+
+    LIB=$(echo "$lib" | tr '[:lower:]' '[:upper:]' );
+
+    echo "LDFLAGS_${LIB}_1 = -l${lib}";
+    echo "CPPFLAGS_${LIB}_0 = -DNO_${LIB}_LOADER"
+    if [ "$1" = --enable-all ]; then
+        echo "HAVE_$LIB ?= 1"
+    elif [ "$1" = --disable-all ]; then
+        echo "HAVE_$LIB ?= 0"
+    elif echo "int main(){}" | ${CC:-cc} "-l$lib" -o /dev/null -x c - 2>/dev/null ; then
+        echo "HAVE_$LIB ?= 1"
     else
-        echo "CXXFLAGS += NO_${lib}_LOADER" | tr '[:lower:]' '[:upper:]' ;
+        echo "HAVE_$LIB ?= 0"
     fi
+    echo "CPPFLAGS += \$(CPPFLAGS_${LIB}_\$(HAVE_$LIB))"
+    echo "LDFLAGS += \$(LDFLAGS_${LIB}_\$(HAVE_$LIB))"
 done > config.mk
