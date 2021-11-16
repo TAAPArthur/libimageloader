@@ -154,7 +154,7 @@ void freeImageData(ImageContext*context, ImageData* data) {
 }
 
 void destroyContext(ImageContext*context) {
-    DEBUG("Destroy context\n");
+    LOG("Destroy context\n");
     for(int i = context->num - 1; i >= 0; i--){
         freeImageData(context, context->data[i]);
     }
@@ -168,7 +168,7 @@ void setLoaderEnabled(ImgLoaderId id, int value){
 
 int loadImageWithLoader(ImageContext* context, int fd, ImageData*data, ImageLoader*img_loader) {
     int ret = img_loader->img_open(context, fd, data);
-    DEBUG("Loader %d returned %d\n", img_loader->id, ret);
+    LOG("Loader %d returned %d\n", img_loader->id, ret);
     if (ret == 0)
         data->loader_index = img_loader->id;
     return ret;
@@ -218,7 +218,7 @@ struct ImageData* openImage(struct ImageContext* context, int index, struct Imag
 }
 
 ImageData* addFile(ImageContext* context, const char* file_name, ImgLoaderId  parent) {
-    DEBUG("Attempting to add file %s\n", file_name);
+    LOG("Attempting to add file %s\n", file_name);
     if(context->num == context->size || !context->data) {
         if(context->data)
             context->size *= 2;
@@ -236,7 +236,7 @@ ImageData* addFile(ImageContext* context, const char* file_name, ImgLoaderId  pa
         if(_loadImage(context, context->data[context->num], 1));
     }
     context->num++;
-    DEBUG("Added file %s %d\n", file_name, context->num);
+    LOG("Added file %s %d\n", file_name, context->num);
     return data;
 }
 

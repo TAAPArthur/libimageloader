@@ -4,11 +4,11 @@
 #include "img_loader.h"
 #include <stdbool.h>
 
-#ifndef NDEBUG
+#ifdef VERBOSE
 #include <stdio.h>
-#define DEBUG(...) printf(__VA_ARGS__)
+#define LOG(...) printf(__VA_ARGS__)
 #else
-#define DEBUG(...)
+#define LOG(...)
 #endif
 
 #define IMG_DATA_KEEP_OPEN 1
