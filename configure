@@ -1,19 +1,30 @@
-#!/bin/sh -e
+#!/bin/sh
+exec > config.mk
+for arg in "$@"; do
+    case "$arg" in
+        --enable-all)GLOBAL_DEFAULT=1;;
+        --disable-all)GLOBAL_DEFAULT=0;;
+        --prefix)echo "PREFIX=$2"; shift ;;
+        --prefix=*)echo "PREFIX=${1#--prefix=}" ;;
+    esac
+    shift
+done
+
 for lib in Imlib2 spng zip curl; do
+    LIB=$(echo "$lib" | cut -d"/" -f 1 | tr '[:lower:]' '[:upper:]' );
 
-    LIB=$(echo "$lib" | tr '[:lower:]' '[:upper:]' );
-
-    echo "LDFLAGS_${LIB}_1 = -l${lib}";
+    [ "${lib%.h}.h" = "${lib}" ] || echo "LDFLAGS_${LIB}_1 = -l${lib}";
     echo "CPPFLAGS_${LIB}_0 = -DNO_${LIB}_LOADER"
-    if [ "$1" = --enable-all ]; then
-        echo "HAVE_$LIB ?= 1"
-    elif [ "$1" = --disable-all ]; then
-        echo "HAVE_$LIB ?= 0"
-    elif echo "int main(){}" | ${CC:-cc} "-l$lib" -o /dev/null -x c - 2>/dev/null ; then
-        echo "HAVE_$LIB ?= 1"
+    if [ -n "$GLOBAL_DEFAULT" ]; then
+        echo "HAVE_$LIB ?= $GLOBAL_DEFAULT"
     else
-        echo "HAVE_$LIB ?= 0"
+        if [ "${lib%.h}.h" = "${lib}" ] ; then
+            ! echo "#include <$lib>;int main(){}" | ${CC:-cc} -o /dev/null -x c - 2>/dev/null
+        else
+            ! echo "int main(){}" | ${CC:-cc} "-l$lib" -o /dev/null -x c - 2>/dev/null
+        fi
+        echo "HAVE_$LIB ?= $?"
     fi
     echo "CPPFLAGS += \$(CPPFLAGS_${LIB}_\$(HAVE_$LIB))"
     echo "LDFLAGS += \$(LDFLAGS_${LIB}_\$(HAVE_$LIB))"
-done > config.mk
+done
