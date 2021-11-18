@@ -50,7 +50,7 @@ typedef struct ImageLoader {
 #define CREATE_LOADER(NAME) { "NAME", NAME ## _load, .img_close= NAME ## _close}
 #define CREATE_PARENT_LOADER(NAME, FLAGS){ "NAME", NAME ## _load, .img_close_child= NAME ## _close_child, .flags = FLAGS}
 
-ImageLoader img_loaders[] = {
+static const ImageLoader img_loaders[] = {
 #ifndef NO_DIR_LOADER
     CREATE_PARENT_LOADER(dir, MULTI_LOADER | NO_SEEK),
 #endif
@@ -68,7 +68,7 @@ ImageLoader img_loaders[] = {
 #endif
 };
 
-ImageLoader pipe_loader = CREATE_PARENT_LOADER(pipe, MULTI_LOADER | NO_SEEK);
+static ImageLoader pipe_loader = CREATE_PARENT_LOADER(pipe, MULTI_LOADER | NO_SEEK);
 
 int getFD(ImageData* data) {
     int fd = data->fd;
@@ -158,9 +158,9 @@ void destroyContext(ImageContext*context) {
     free(context);
 }
 
-int loadImageWithLoader(ImageContext* context, int fd, ImageData*data, ImageLoader*img_loader) {
+int loadImageWithLoader(ImageContext* context, int fd, ImageData*data, const ImageLoader* img_loader) {
     int ret = img_loader->img_open(context, fd, data);
-    LOG("Loader %d returned %d\n", img_loader->id, ret);
+    LOG("Loader %s returned %d\n", img_loader->name, ret);
     if (ret == 0)
         data->loader = img_loader;
     return ret;
