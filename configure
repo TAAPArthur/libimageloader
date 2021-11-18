@@ -19,7 +19,7 @@ for lib in Imlib2 spng zip curl; do
         echo "HAVE_$LIB ?= $GLOBAL_DEFAULT"
     else
         if [ "${lib%.h}.h" = "${lib}" ] ; then
-            ! echo "#include <$lib>;int main(){}" | ${CC:-cc} -o /dev/null -x c - 2>/dev/null
+            ! printf "#include <%s>\nint main(){}" "$lib" | ${CC:-cc} -o /dev/null -x c - 2>/dev/null
         else
             ! echo "int main(){}" | ${CC:-cc} "-l$lib" -o /dev/null -x c - 2>/dev/null
         fi
