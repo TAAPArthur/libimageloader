@@ -20,7 +20,7 @@
 #include "spng_loader.h"
 #endif
 
-#ifndef NO_IMLIB_LOADER
+#ifndef NO_IMLIB2_LOADER
 #include "imlib2_loader.h"
 #endif
 
@@ -64,7 +64,7 @@ static const ImageLoader img_loaders[] = {
 #ifndef NO_SPNG_LOADER
     CREATE_LOADER(spng),
 #endif
-#ifndef NO_IMLIB_LOADER
+#ifndef NO_IMLIB2_LOADER
     CREATE_LOADER(imlib2),
 #endif
 #ifndef NO_ZIP_LOADER
