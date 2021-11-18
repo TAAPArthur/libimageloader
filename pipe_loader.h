@@ -32,5 +32,3 @@ int pipe_load(ImageContext* context, int pipeFD, ImageData* parent) {
     close(fd);
     return 0;
 }
-
-void pipe_close_child() {}

@@ -19,12 +19,8 @@ int dir_load(ImageContext* context, int fd, ImageData* data) {
         strcpy(buf + base_len, "/");
         strcpy(buf + base_len + 1, dir->d_name);
         //if(dir-> d_type != DT_DIR)
-        addFile(context, buf)->parent = data;
+        addFile(context, buf)->flags |= IMG_DATA_FREE_NAME;
     }
     closedir(d);
     return 0;
-}
-
-void dir_close_child(ImageData* data){
-    free((void*)data->name);
 }

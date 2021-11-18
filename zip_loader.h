@@ -31,16 +31,11 @@ int zip_load(ImageContext* context, int fd, ImageData* parent) {
         free(buf);
         lseek(fd, 0, SEEK_SET);
         ImageData* data = addFile(context, name);
-        data->parent = parent;
         setStats(data, size, stat.valid & ZIP_STAT_MTIME ? stat.mtime : parent->mod_time);
         data->fd = fd;
-        data->flags |= IMG_DATA_KEEP_OPEN;
+        data->flags |= IMG_DATA_KEEP_OPEN | IMG_DATA_FREE_NAME;
         zip_fclose(file);
     }
     zip_discard(zip);
     return 0;
-}
-
-void zip_close_child(ImageData* data){
-    free((void*)data->name);
 }

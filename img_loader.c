@@ -48,21 +48,20 @@ typedef struct ImageLoader {
     const char* name;
     int (*img_open)(ImageContext*, int fd, ImageData*);
     void (*img_close)(ImageData*);
-    void (*img_close_child)(ImageData*);
     uint8_t flags;
 } ImageLoader;
-#define CREATE_LOADER(NAME) { "NAME", NAME ## _load, .img_close= NAME ## _close}
-#define CREATE_PARENT_LOADER(NAME, FLAGS){ "NAME", NAME ## _load, .img_close_child= NAME ## _close_child, .flags = FLAGS}
+#define CREATE_LOADER(NAME) { # NAME, NAME ## _load, .img_close= NAME ## _close}
+#define CREATE_PARENT_LOADER(NAME, FLAGS){  # NAME , NAME ## _load, .flags = FLAGS}
 
 static const ImageLoader img_loaders[] = {
 #ifndef NO_DIR_LOADER
     CREATE_PARENT_LOADER(dir, MULTI_LOADER | NO_SEEK),
 #endif
-#ifndef NO_STB_IMAGE_LOADER
-    CREATE_LOADER(stb_image),
-#endif
 #ifndef NO_SPNG_LOADER
     CREATE_LOADER(spng),
+#endif
+#ifndef NO_STB_IMAGE_LOADER
+    CREATE_LOADER(stb_image),
 #endif
 #ifndef NO_IMLIB2_LOADER
     CREATE_LOADER(imlib2),
@@ -144,11 +143,11 @@ void closeImage(ImageData* data, bool force) {
 }
 
 void freeImageData(ImageContext*context, ImageData* data) {
-    if(data->parent && data->parent->loader->img_close_child) {
-        data->loader->img_close_child(data);
-    }
     if(data->data)
         closeImage(data, 1);
+
+    if(data->flags & IMG_DATA_FREE_NAME)
+        free((void*)data->name);
 
     free(data);
     for(int i = context->num - 1; i >= 0; i--)

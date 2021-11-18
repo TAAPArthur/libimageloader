@@ -11,7 +11,8 @@
 #define LOG(...)
 #endif
 
-#define IMG_DATA_KEEP_OPEN 1
+#define IMG_DATA_KEEP_OPEN (1 << 0)
+#define IMG_DATA_FREE_NAME (1 << 1)
 
 void setStats(ImageData*data, long size, long mod_time) ;
 typedef struct ImageLoader ImageLoader;
@@ -19,7 +20,6 @@ typedef struct ImageLoader ImageLoader;
 typedef struct ImageData {
     int id;
     const ImageLoader* loader;
-    const ImageData* parent;
     int fd;
     const char* name;
     unsigned int image_width;
