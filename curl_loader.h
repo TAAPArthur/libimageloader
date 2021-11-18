@@ -13,7 +13,7 @@ static size_t write_data(void *ptr, size_t size, size_t nmemb, int*fd) {
 static int curl_counter;
 
 int curl_load(ImageContext* context, int _, ImageData* parent) {
-    if(!parent->parent_loader_index || strstr(parent->name, "http") != parent->name)
+    if(strstr(parent->name, "http") != parent->name)
         return -1;
     if(!curl_counter++)
         curl_global_init(CURL_GLOBAL_ALL);
@@ -34,7 +34,8 @@ int curl_load(ImageContext* context, int _, ImageData* parent) {
     /* get it! */
     curl_easy_perform(curl_handle);
 
-    ImageData* data = addFile(context, parent->name, IMG_CURL_ID);
+    ImageData* data = addFile(context, parent->name);
+    data->parent = parent;
     data->flags |= IMG_DATA_KEEP_OPEN;
     data->fd = fd;
     lseek(fd, 0, SEEK_SET);
@@ -45,7 +46,7 @@ int curl_load(ImageContext* context, int _, ImageData* parent) {
     return 0;
 }
 
-void curl_close() {
+void curl_close_child() {
     if(!--curl_counter) {
         curl_global_cleanup();
     }

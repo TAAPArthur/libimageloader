@@ -1,10 +1,9 @@
-
 #include <spng.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include "img_loader_private.h"
 
-int libspng_load(ImageContext* context, int fd, ImageData* data) {
+int spng_load(ImageContext* context, int fd, ImageData* data) {
 
     spng_ctx *ctx;
     struct spng_ihdr ihdr;
@@ -40,6 +39,6 @@ err:
     return -1;
 }
 
-void libspng_close(ImageData* data) {
+void spng_close(ImageData* data) {
     free(data->data);
 }

@@ -19,7 +19,7 @@ int dir_load(ImageContext* context, int fd, ImageData* data) {
         strcpy(buf + base_len, "/");
         strcpy(buf + base_len + 1, dir->d_name);
         //if(dir-> d_type != DT_DIR)
-        addFile(context, buf, IMG_DIR_ID);
+        addFile(context, buf)->parent = data;
     }
     closedir(d);
     return 0;

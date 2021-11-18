@@ -4,7 +4,7 @@
 #include <zip.h>
 #include "img_loader_private.h"
 
-int load_zip(ImageContext* context, int fd, ImageData* parent) {
+int zip_load(ImageContext* context, int fd, ImageData* parent) {
     int errorp;
 
     zip_t* zip = zip_fdopen(fd, 0, &errorp);
@@ -30,8 +30,8 @@ int load_zip(ImageContext* context, int fd, ImageData* parent) {
         write(fd, buf, size);
         free(buf);
         lseek(fd, 0, SEEK_SET);
-        ImageData* data = addFile(context, name, IMG_ZIP_ID);
-
+        ImageData* data = addFile(context, name);
+        data->parent = parent;
         setStats(data, size, stat.valid & ZIP_STAT_MTIME ? stat.mtime : parent->mod_time);
         data->fd = fd;
         data->flags |= IMG_DATA_KEEP_OPEN;

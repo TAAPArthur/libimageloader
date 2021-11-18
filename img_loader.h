@@ -15,18 +15,7 @@ typedef enum {
     IMG_SORT_SIZE,
 } IMG_SORT;
 
-typedef enum {
-    IMG_INVALID_ID,
-    IMG_DIR_ID,
-    IMG_IMLIB_ID,
-    IMG_ZIP_ID,
-    IMG_CURL_ID,
-    IMG_PIPE_ID,
-    IMG_LIBSPNG_ID,
-} ImgLoaderId;
-
-
-ImageData* addFile(ImageContext* context, const char* file_name, ImgLoaderId parent_loader);
+ImageData* addFile(ImageContext* context, const char* file_name);
 ImageContext* createContext(const char** file_names, int num, int flags);
 void destroyContext(ImageContext*context);
 
@@ -40,5 +29,4 @@ void* getRawImage(const ImageData*);
 unsigned int getImageNum(const ImageContext* context);
 
 int createMemoryFile(const char* name, int size);
-void setLoaderEnabled(ImgLoaderId id, int value);
 #endif

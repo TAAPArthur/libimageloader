@@ -3,8 +3,6 @@
 #include <unistd.h>
 #include "img_loader_private.h"
 
-
-
 int pipe_load(ImageContext* context, int pipeFD, ImageData* parent) {
     int fd = createMemoryFile(parent->name, 0);
 
@@ -21,7 +19,7 @@ int pipe_load(ImageContext* context, int pipeFD, ImageData* parent) {
     ImageData* data;
     while(1) {
         int temp_fd = dup(fd);
-        data = addFile(context, parent->name, IMG_PIPE_ID);
+        data = addFile(context, parent->name);
         data->fd = temp_fd;
         data->flags |= IMG_DATA_KEEP_OPEN;
         if(!loadImage(context, data)) {
@@ -34,3 +32,5 @@ int pipe_load(ImageContext* context, int pipeFD, ImageData* parent) {
     close(fd);
     return 0;
 }
+
+void pipe_close_child() {}

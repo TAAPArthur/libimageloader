@@ -11,8 +11,13 @@
 #ifndef NO_DIR_LOADER
 #include "dir_loader.h"
 #endif
+
+#ifndef NO_SPNG_LOADER
+#include "spng_loader.h"
+#endif
+
 #ifndef NO_IMLIB_LOADER
-#include "imglib_loader.h"
+#include "imlib2_loader.h"
 #endif
 
 #ifndef NO_ZIP_LOADER
@@ -27,10 +32,6 @@
 #include "pipe_loader.h"
 #endif
 
-#ifndef NO_LIBSPNG_LOADER
-#include "libspng_loader.h"
-#endif
-
 #define RUN_FUNC(DATA, LOADER, FUNC) do { \
     if(getLoaderEnabled(DATA->LOADER)->FUNC)getLoaderEnabled(DATA->LOADER)->FUNC(data); \
     } while(0)
@@ -39,42 +40,35 @@
 #define NO_SEEK        (1 << 1)
 #define NO_FD          (1 << 2)
 
-typedef struct {
-    int id;
+typedef struct ImageLoader {
+    const char* name;
     int (*img_open)(ImageContext*, int fd, ImageData*);
     void (*img_close)(ImageData*);
     void (*img_close_child)(ImageData*);
     uint8_t flags;
 } ImageLoader;
+#define CREATE_LOADER(NAME) { "NAME", NAME ## _load, .img_close= NAME ## _close}
+#define CREATE_PARENT_LOADER(NAME, FLAGS){ "NAME", NAME ## _load, .img_close_child= NAME ## _close_child, .flags = FLAGS}
 
 ImageLoader img_loaders[] = {
 #ifndef NO_DIR_LOADER
-    {IMG_DIR_ID, dir_load, .img_close_child=dir_close_child, .flags = MULTI_LOADER | NO_SEEK},
+    CREATE_PARENT_LOADER(dir, MULTI_LOADER | NO_SEEK),
 #endif
-#ifndef NO_LIBSPNG_LOADER
-    {IMG_LIBSPNG_ID, libspng_load, libspng_close},
+#ifndef NO_SPNG_LOADER
+    CREATE_LOADER(spng),
 #endif
 #ifndef NO_IMLIB_LOADER
-    {IMG_IMLIB_ID, imlib_load, imlib_close},
+    CREATE_LOADER(imlib2),
 #endif
 #ifndef NO_ZIP_LOADER
-    {IMG_ZIP_ID, load_zip, .img_close_child=zip_close_child, .flags = MULTI_LOADER},
+    CREATE_PARENT_LOADER(zip, MULTI_LOADER),
 #endif
 #ifndef NO_CURL_LOADER
-    {IMG_CURL_ID, curl_load, .img_close_child=curl_close, .flags = MULTI_LOADER | NO_FD | NO_SEEK},
+    CREATE_PARENT_LOADER(curl, MULTI_LOADER | NO_FD | NO_SEEK),
 #endif
 };
 
-ImageLoader pipe_loader = {IMG_PIPE_ID, pipe_load };
-
-ImageLoader* getLoaderEnabled(ImgLoaderId id){
-    for(int i = 0; i < sizeof(img_loaders)/sizeof(img_loaders[0]); i++)
-        if(img_loaders[i].id == id)
-            return &img_loaders[i];
-    if(id == IMG_PIPE_ID)
-        return &pipe_loader;
-    return NULL;
-}
+ImageLoader pipe_loader = CREATE_PARENT_LOADER(pipe, MULTI_LOADER | NO_SEEK);
 
 int getFD(ImageData* data) {
     int fd = data->fd;
@@ -136,15 +130,15 @@ void removeInvalid(ImageContext* context) {
 
 void closeImage(ImageData* data, bool force) {
     if(--data->ref_count == 0 &&  !(data->flags & IMG_DATA_KEEP_OPEN)|| force) {
-        RUN_FUNC(data, loader_index, img_close);
+        data->loader->img_close(data);
         data->image_data = NULL;
         data->data = NULL;
     }
 }
 
 void freeImageData(ImageContext*context, ImageData* data) {
-    if(data->parent_loader_index) {
-        RUN_FUNC(data, parent_loader_index, img_close_child);
+    if(data->parent && data->parent->loader->img_close_child) {
+        data->loader->img_close_child(data);
     }
     if(data->data)
         closeImage(data, 1);
@@ -168,7 +162,7 @@ int loadImageWithLoader(ImageContext* context, int fd, ImageData*data, ImageLoad
     int ret = img_loader->img_open(context, fd, data);
     LOG("Loader %d returned %d\n", img_loader->id, ret);
     if (ret == 0)
-        data->loader_index = img_loader->id;
+        data->loader = img_loader;
     return ret;
 }
 
@@ -219,7 +213,7 @@ struct ImageData* openImage(struct ImageContext* context, int index, struct Imag
     return data;
 }
 
-ImageData* addFile(ImageContext* context, const char* file_name, ImgLoaderId  parent) {
+ImageData* addFile(ImageContext* context, const char* file_name) {
     LOG("Attempting to add file %s\n", file_name);
     if(context->num == context->size || !context->data) {
         if(context->data)
@@ -231,7 +225,6 @@ ImageData* addFile(ImageContext* context, const char* file_name, ImgLoaderId  pa
     context->data[context->num] = data ;
     data->id = context->counter++;
     data->name = file_name;
-    data->parent_loader_index = parent;
     if(context->flags & LOAD_STATS)
         loadStats(context->data[context->num]);
     if(context->flags & PRE_EXPAND) {
@@ -243,7 +236,7 @@ ImageData* addFile(ImageContext* context, const char* file_name, ImgLoaderId  pa
 }
 
 int addFromPipe(ImageContext* context, int fd, const char* name) {
-    ImageData* data = addFile(context, name, 0);
+    ImageData* data = addFile(context, name);
     return loadImageWithLoader(context, fd, data, &pipe_loader);
 }
 
@@ -255,7 +248,7 @@ ImageContext* createContext(const char** file_names, int num, int flags) {
         if(file_names[i][0] == '-' && !file_names[i][1])
             addFromPipe(context, STDIN_FILENO, "stdin");
         else
-            addFile(context, file_names[i], IMG_INVALID_ID);
+            addFile(context, file_names[i]);
     }
     return context;
 }
