@@ -10,7 +10,7 @@ for arg in "$@"; do
     shift
 done
 
-for lib in Imlib2 spng zip curl; do
+for lib in Imlib2 spng zip curl stb/stb_image.h; do
     LIB=$(echo "$lib" | cut -d"/" -f 1 | tr '[:lower:]' '[:upper:]' );
 
     [ "${lib%.h}.h" = "${lib}" ] || echo "LDFLAGS_${LIB}_1 = -l${lib}";

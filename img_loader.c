@@ -12,6 +12,10 @@
 #include "dir_loader.h"
 #endif
 
+#ifndef NO_STB_IMAGE_LOADER
+#include "stb_image_loader.h"
+#endif
+
 #ifndef NO_SPNG_LOADER
 #include "spng_loader.h"
 #endif
@@ -53,6 +57,9 @@ typedef struct ImageLoader {
 static const ImageLoader img_loaders[] = {
 #ifndef NO_DIR_LOADER
     CREATE_PARENT_LOADER(dir, MULTI_LOADER | NO_SEEK),
+#endif
+#ifndef NO_STB_IMAGE_LOADER
+    CREATE_LOADER(stb_image),
 #endif
 #ifndef NO_SPNG_LOADER
     CREATE_LOADER(spng),
