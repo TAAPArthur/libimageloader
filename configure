@@ -11,8 +11,7 @@ for arg in "$@"; do
 done
 
 for lib in Imlib2 spng zip curl stb/stb_image.h; do
-    LIB=$(echo "$lib" | cut -d"/" -f 1 | tr '[:lower:]' '[:upper:]' );
-
+    LIB=$(echo "$lib" | sed 's|\w*/\(\w*\).h|\1|' | tr '[:lower:]' '[:upper:]' );
     [ "${lib%.h}.h" = "${lib}" ] || echo "LDFLAGS_${LIB}_1 = -l${lib}";
     echo "CPPFLAGS_${LIB}_0 = -DNO_${LIB}_LOADER"
     if [ -n "$GLOBAL_DEFAULT" ]; then
