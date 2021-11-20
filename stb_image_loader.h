@@ -15,6 +15,7 @@ int stb_image_load(ImageContext* context, int fd, ImageData* data) {
     fclose(file);
     if(raw) {
         data->data = raw;
+        data->flags |= IMG_DATA_FLIP_RED_BLUE;
         return 0;
     }
     return -1;

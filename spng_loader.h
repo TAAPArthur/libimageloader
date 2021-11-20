@@ -28,6 +28,7 @@ int spng_load(ImageContext* context, int fd, ImageData* data) {
     data->data = image;
     data->image_width = ihdr.width;
     data->image_height = ihdr.height;
+    data->flags |= IMG_DATA_FLIP_RED_BLUE;
 
     spng_ctx_free(ctx);
     return 0;

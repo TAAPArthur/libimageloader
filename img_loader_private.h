@@ -11,8 +11,9 @@
 #define LOG(...)
 #endif
 
-#define IMG_DATA_KEEP_OPEN (1 << 0)
-#define IMG_DATA_FREE_NAME (1 << 1)
+#define IMG_DATA_KEEP_OPEN      (1 << 0)
+#define IMG_DATA_FREE_NAME      (1 << 1)
+#define IMG_DATA_FLIP_RED_BLUE  (1 << 2)
 
 void setStats(ImageData*data, long size, long mod_time) ;
 typedef struct ImageLoader ImageLoader;
@@ -45,4 +46,6 @@ typedef struct ImageContext {
 ImageData* loadImage(ImageContext* context, ImageData*data);
 
 void loadStats(ImageData*data);
+
+void flipRedBlue(ImageData* data);
 #endif

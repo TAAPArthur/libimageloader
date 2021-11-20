@@ -167,8 +167,11 @@ void destroyContext(ImageContext*context) {
 int loadImageWithLoader(ImageContext* context, int fd, ImageData*data, const ImageLoader* img_loader) {
     int ret = img_loader->img_open(context, fd, data);
     LOG("Loader %s returned %d\n", img_loader->name, ret);
-    if (ret == 0)
+    if (ret == 0) {
         data->loader = img_loader;
+        if(data->flags & IMG_DATA_FLIP_RED_BLUE)
+            flipRedBlue(data);
+    }
     return ret;
 }
 
@@ -272,3 +275,12 @@ int createMemoryFile(const char* name, int size) {
     return fd;
 }
 
+
+void flipRedBlue(ImageData* data) {
+    char* raw = data->data;
+    for(int i = 0; i < data->image_width * data->image_height *4; i+=4) {
+        char temp = raw[i];
+        raw[i] = raw[i+2];
+        raw[i+2] = temp;
+    }
+}
