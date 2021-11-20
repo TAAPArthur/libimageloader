@@ -62,11 +62,11 @@ static const ImageLoader img_loaders[] = {
 #ifndef NO_STB_IMAGE_LOADER
     CREATE_LOADER(stb_image),
 #endif
-#ifndef NO_IMLIB2_LOADER
-    CREATE_LOADER(imlib2),
-#endif
 #ifndef NO_ZIP_LOADER
     CREATE_PARENT_LOADER(zip, MULTI_LOADER),
+#endif
+#ifndef NO_IMLIB2_LOADER
+    CREATE_LOADER(imlib2),
 #endif
 #ifndef NO_CURL_LOADER
     CREATE_PARENT_LOADER(curl, MULTI_LOADER | NO_FD | NO_SEEK),
