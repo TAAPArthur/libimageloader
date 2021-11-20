@@ -10,7 +10,7 @@ for arg in "$@"; do
     shift
 done
 
-for lib in Imlib2 spng zip curl stb/stb_image.h; do
+for lib in Imlib2 spng zip curl stb/stb_image.h miniz; do
     LIB=$(echo "$lib" | sed 's|\w*/\(\w*\).h|\1|' | tr '[:lower:]' '[:upper:]' );
     [ "${lib%.h}.h" = "${lib}" ] || echo "LDFLAGS_${LIB}_1 = -l${lib}";
     echo "CPPFLAGS_${LIB}_0 = -DNO_${LIB}_LOADER"

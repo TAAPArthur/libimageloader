@@ -23,6 +23,10 @@
 #include "imlib2_loader.h"
 #endif
 
+#ifndef NO_MINIZ_LOADER
+#include "miniz_loader.h"
+#endif
+
 #ifndef NO_ZIP_LOADER
 #include "zip_loader.h"
 #endif
@@ -61,6 +65,9 @@ static const ImageLoader img_loaders[] = {
 #endif
 #ifndef NO_STB_IMAGE_LOADER
     CREATE_LOADER(stb_image),
+#endif
+#ifndef NO_MINIZ_LOADER
+    CREATE_PARENT_LOADER(miniz, MULTI_LOADER),
 #endif
 #ifndef NO_ZIP_LOADER
     CREATE_PARENT_LOADER(zip, MULTI_LOADER),

@@ -15,13 +15,14 @@ make install
 * Load many formats including png, jpeg, and gif
 * Load from directories
 * Load remote images (requires libcurl)
-* Load zip archives which includes comic book and epub formats (images only) (requires libzip)
+* Load zip archives which includes comic book and epub formats (images only) (requires libzip or miniz)
 * Load from pipe
 * All dependencies can be compiled out
 
 # Backends
 * [spng](https://libspng.org/) (png)
 * [stb_image](https://github.com/nothings/stb/blob/master/stb_image.h) (jpeg, png, tga, bmp, psd, gif, hdr, pic, pnm)
+* [miniz](https://github.com/richgel999/miniz) (zip, cbz, epub)
 * [libzip](https://libzip.org/) (zip, cbz, epub)
 * [libcurl](https://curl.se/) (remote images)
 * [Imlib2](https://docs.enlightenment.org/api/imlib2/html/) (peg, gif, ppm, pgm, xpm, png, tiff and eim)
