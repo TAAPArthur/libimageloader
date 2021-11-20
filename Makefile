@@ -14,6 +14,7 @@ libimgloader.a: $(PRG).o
 
 install: $(LIB)
 	install -Dt $(DESTDIR)$(PREFIX)/lib $(LIB)
+	install -Dt $(DESTDIR)$(PREFIX)/include/$(PRG) $(PRG).h
 
 clean:
 	rm -f *.o *.a *.so
