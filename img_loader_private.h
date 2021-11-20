@@ -2,7 +2,6 @@
 #define IMG_LOADER_PRIVATE
 
 #include "img_loader.h"
-#include <stdbool.h>
 
 #ifdef VERBOSE
 #include <stdio.h>
@@ -27,7 +26,7 @@ typedef struct ImageData {
     unsigned int image_height;
     void* image_data;
     void* data;
-    bool stats_loaded;
+    char stats_loaded;
     long size;
     long mod_time;
     int ref_count;

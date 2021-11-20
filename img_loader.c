@@ -1,6 +1,5 @@
 #define _GNU_SOURCE
 #include <fcntl.h>
-#include <stdbool.h>
 #include <stdlib.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
@@ -48,7 +47,7 @@ typedef struct ImageLoader {
     const char* name;
     int (*img_open)(ImageContext*, int fd, ImageData*);
     void (*img_close)(ImageData*);
-    uint8_t flags;
+    char flags;
 } ImageLoader;
 #define CREATE_LOADER(NAME) { # NAME, NAME ## _load, .img_close= NAME ## _close}
 #define CREATE_PARENT_LOADER(NAME, FLAGS){  # NAME , NAME ## _load, .flags = FLAGS}
@@ -146,7 +145,7 @@ void removeInvalid(ImageContext* context) {
     context->num = i;
 }
 
-void closeImage(ImageData* data, bool force) {
+void closeImage(ImageData* data, int force) {
     if(--data->ref_count == 0 &&  !(data->flags & IMG_DATA_KEEP_OPEN)|| force) {
         data->loader->img_close(data);
         data->image_data = NULL;
@@ -187,7 +186,7 @@ int loadImageWithLoader(ImageContext* context, int fd, ImageData*data, const Ima
     return ret;
 }
 
-ImageData* _loadImage(ImageContext* context, ImageData*data, bool multi_lib_only) {
+ImageData* _loadImage(ImageContext* context, ImageData*data, int multi_lib_only) {
     int fd = getFD(data);
     for(int i = 0; i < sizeof(img_loaders)/sizeof(img_loaders[0]); i++) {
         if(multi_lib_only && (img_loaders[i].flags & MULTI_LOADER))
