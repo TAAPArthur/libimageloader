@@ -22,6 +22,8 @@ void destroyContext(ImageContext*context);
 
 ImageData* openImage(ImageContext* context, int index, ImageData* currentImage);
 
+void sortImages(ImageContext* context, int type);
+
 const char* getImageName(const ImageData*);
 unsigned int getImageWidth(const ImageData*);
 unsigned int getImageHeight(const ImageData*);

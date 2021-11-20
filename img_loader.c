@@ -100,30 +100,42 @@ void loadStats(ImageData*data) {
     data->stats_loaded = 1;
 }
 
-int compareName(const ImageData* a, const ImageData* b) {
-    return strcmp(a->name, b->name);
+int compareName(const void* a, const void* b) {
+    return strcmp((*(ImageData**)a)->name, (*(ImageData**)b)->name);
 }
 
-int compareMod(const ImageData* a, const ImageData* b) {
-    return a->mod_time - b->mod_time;
+int compareMod(const void* a, const void* b) {
+    return (*(ImageData**)a)->mod_time - (*(ImageData**)b)->mod_time;
 }
 
-int compareSize(const ImageData* a, const ImageData* b) {
-    return a->size - b->size;
+int compareSize(const void* a, const void* b) {
+    return (*(ImageData**)a)->size - (*(ImageData**)b)->size;
 }
 
-int compareId(const ImageData* a, const ImageData* b) {
-    return a->id - b->id;
+int compareId(const void* a, const void* b) {
+    return (*(ImageData**)a)->id - (*(ImageData**)b)->id;
 }
 
-void sort(ImageContext* context, IMG_SORT type) {
-    static int (*sort_func[])(const ImageData* a, const ImageData* b) = {
+void sortImages(ImageContext* context, int type) {
+    static int (*sort_func[])(const void*, const void* b) = {
         [IMG_SORT_LOADED] = compareId,
         [IMG_SORT_NAME] = compareName,
         [IMG_SORT_MOD] = compareMod,
         [IMG_SORT_SIZE] = compareSize,
     };
-    qsort(context->data, context->num, sizeof(context->data[0]), (__compar_fn_t )sort_func[type]);
+    if(!(context->flags & LOAD_STATS) && abs(type) > IMG_SORT_NAME)
+        for(int i = 0;i < context->num; i++) {
+            loadStats(context->data[i]);
+        }
+    qsort(context->data, context->num, sizeof(context->data[0]), sort_func[abs(type)]);
+
+    if(type < 0) {
+        for(int i = 0;i < context->num/2; i++) {
+            void* temp = context->data[i];
+            context->data[i] = context->data[context->num -1 - i];
+            context->data[context->num -1 - i] = temp;
+        }
+    }
 }
 
 void removeInvalid(ImageContext* context) {
