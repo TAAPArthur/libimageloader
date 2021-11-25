@@ -111,6 +111,8 @@ typedef enum {
     IMG_LOADER_ZIP,
     IMG_LOADER_IMLIB2,
     IMG_LOADER_CURL,
+    IMG_LOADER_FFMPEG,
+
 } IMAGE_LOADER_INDEX;
 
 void image_loader_enable_loader_only(ImageLoaderContext* context, IMAGE_LOADER_INDEX loader);

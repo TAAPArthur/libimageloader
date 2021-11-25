@@ -97,6 +97,14 @@ SCUTEST(simple_workflow_imlib2) {
     simple_load_test(path, 1 << IMG_LOADER_IMLIB2);
 }
 #endif
+
+#ifndef NO_FFMPEG_LOADER
+SCUTEST(simple_workflow_ffmpeg) {
+    const char* path[] = {TEST_IMAGE_PREFIX "mp4/", NULL};
+    simple_load_test(path, 0);
+}
+#endif
+
 #endif
 
 #ifndef NO_MINIZ_LOADER
