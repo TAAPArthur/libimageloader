@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include "img_loader_private.h"
 
-int spng_load(ImageContext* context, int fd, ImageData* data) {
+int spng_load(ImageLoaderContext* context, int fd, ImageLoaderData* data) {
 
     spng_ctx *ctx;
     struct spng_ihdr ihdr;
@@ -39,6 +39,6 @@ err:
     return -1;
 }
 
-void spng_close(ImageData* data) {
+void spng_close(ImageLoaderData* data) {
     free(data->data);
 }

@@ -5,7 +5,7 @@
 #include <unistd.h>
 
 #include "img_loader_private.h"
-int stb_image_load(ImageContext* context, int fd, ImageData* data) {
+int stb_image_load(ImageLoaderContext* context, int fd, ImageLoaderData* data) {
     FILE* file = fdopen(dup(fd), "r");
     if(!file)
         return -1;
@@ -20,6 +20,6 @@ int stb_image_load(ImageContext* context, int fd, ImageData* data) {
     return -1;
 }
 
-void stb_image_close(ImageData* data) {
+void stb_image_close(ImageLoaderData* data) {
     stbi_image_free(data->data);
 }

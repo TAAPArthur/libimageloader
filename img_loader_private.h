@@ -14,10 +14,9 @@
 #define IMG_DATA_FREE_NAME      (1 << 1)
 #define IMG_DATA_FLIP_RED_BLUE  (1 << 2)
 
-void setStats(ImageData*data, long size, long mod_time) ;
 typedef struct ImageLoader ImageLoader;
 
-typedef struct ImageData {
+typedef struct ImageLoaderData {
     int id;
     const ImageLoader* loader;
     int fd;
@@ -31,20 +30,20 @@ typedef struct ImageData {
     long mod_time;
     int ref_count;
     int flags;
-} ImageData;
+} ImageLoaderData;
 
-typedef struct ImageContext {
-    ImageData** data;
+typedef struct ImageLoaderContext {
+    ImageLoaderData** data;
     int num;
     int size;
     unsigned int counter;
     unsigned int flags;
+} ImageLoaderContext;
 
-} ImageContext;
+void image_loader_set_stats(ImageLoaderData*data, long size, long mod_time);
+ImageLoaderData* image_loader_load_image(ImageLoaderContext* context, ImageLoaderData*data);
 
-ImageData* loadImage(ImageContext* context, ImageData*data);
+void image_loader_load_stats(ImageLoaderData*data);
 
-void loadStats(ImageData*data);
-
-void flipRedBlue(ImageData* data);
+int image_loader_create_memory_file(const char* name, int size);
 #endif

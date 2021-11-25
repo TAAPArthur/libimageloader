@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include "img_loader_private.h"
 
-int dir_load(ImageContext* context, int fd, ImageData* data) {
+int dir_load(ImageLoaderContext* context, int fd, ImageLoaderData* data) {
     const char*path = data->name;
     int base_len = strlen(path);
     DIR* d = fdopendir(fd);
@@ -18,7 +18,7 @@ int dir_load(ImageContext* context, int fd, ImageData* data) {
         char* buf = malloc(base_len + strlen(dir->d_name) + 2);
         sprintf(buf, "%s%s%s", path, path[base_len-1] == '/' ? "" : "/", dir->d_name);
         //if(dir-> d_type != DT_DIR)
-        addFile(context, buf)->flags |= IMG_DATA_FREE_NAME;
+        image_loader_add_file(context, buf)->flags |= IMG_DATA_FREE_NAME;
     }
     closedir(d);
     return 0;
