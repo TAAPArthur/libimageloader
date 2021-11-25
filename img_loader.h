@@ -9,14 +9,19 @@ typedef struct ImageLoaderContext ImageLoaderContext;
  * When an invalid image is detected, instead of returning NULL, remove that
  * image and load the next one until a valid image is found.
  */
-#define IMAGE_LOADER_REMOVE_INVALID (1 << 0)
+#define IMAGE_LOADER_REMOVE_INVALID                   (1 << 0)
 /* AUTO load stats when adding an image to a context instead of waiting for the image to be loaded */
-#define IMAGE_LOADER_LOAD_STATS     (1 << 1)
+#define IMAGE_LOADER_LOAD_STATS                       (1 << 1)
 /* Recursively loading images when file is added.
  * For example, when a directory is added, by default, the children of the
  * directly won't be added until the directory is accessed. Same is true for
  * zip files. With this flag, they will be added immediately */
-#define IMAGE_LOADER_PRE_EXPAND     (1 << 2)
+#define IMAGE_LOADER_PRE_EXPAND                       (1 << 2)
+/**
+ * If set only contents of explicitly specified directories will be loaded
+ * instead of loading all subdirectories recursively
+ */
+#define IMAGE_LOADER_DISABLE_RECURSIVE_DIR_LOADER     (1 << 3)
 
 /**
  * When an images refcount reaches zero (ie it has been closed as much as it
