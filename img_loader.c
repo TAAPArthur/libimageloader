@@ -39,6 +39,10 @@
 #include "pipe_loader.h"
 #endif
 
+#ifndef NO_FFMPEG_LOADER
+#include "ffmpeg_loader.h"
+#endif
+
 #define RUN_FUNC(DATA, LOADER, FUNC) do { \
     if(getLoaderEnabled(DATA->LOADER)->FUNC)getLoaderEnabled(DATA->LOADER)->FUNC(data); \
     } while(0)
@@ -77,6 +81,9 @@ static const ImageLoader img_loaders[] = {
 #endif
 #ifndef NO_CURL_LOADER
     CREATE_PARENT_LOADER(curl, MULTI_LOADER | NO_FD | NO_SEEK),
+#endif
+#ifndef NO_FFMPEG_LOADER
+    CREATE_PARENT_LOADER(ffmpeg, MULTI_LOADER),
 #endif
 };
 
