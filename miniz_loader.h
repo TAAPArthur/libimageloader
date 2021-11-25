@@ -8,7 +8,7 @@ static size_t miniz_file_write_func(void *pOpaque, mz_uint64 file_ofs, const voi
     return write(*(int*)pOpaque, pBuf, n);
 }
 
-int miniz_load(ImageContext* context, int fd, ImageData* parent) {
+int miniz_load(ImageLoaderContext* context, int fd, ImageLoaderData* parent) {
     FILE* file = fdopen(dup(fd), "r");
     mz_zip_archive zip_archive = {0};
     if(!mz_zip_reader_init_cfile(&zip_archive, file, 0, 0)){
@@ -25,7 +25,7 @@ int miniz_load(ImageContext* context, int fd, ImageData* parent) {
         const char* name = strdup(file_stat.m_filename);
         int fd = createMemoryFile(name, 0);
         mz_zip_reader_extract_to_callback(&zip_archive, i, miniz_file_write_func, &fd, 0);
-        ImageData* data = addFile(context, name);
+        ImageLoaderData* data = image_loader_add_file(context, name);
         setStats(data, file_stat.m_uncomp_size, parent->mod_time);
         data->fd = fd;
         data->flags |= IMG_DATA_KEEP_OPEN | IMG_DATA_FREE_NAME;
