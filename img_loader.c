@@ -244,7 +244,7 @@ ImageLoaderData* image_loader_open(ImageLoaderContext* context, int index, Image
         }
     }
     if(currentImage) {
-        image_loader_close(currentImage, 0);
+        image_loader_close(currentImage, context->flags & IMAGE_LOADER_FORCE_CLOSE);
     }
     return data;
 }

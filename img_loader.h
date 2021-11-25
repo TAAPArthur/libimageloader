@@ -19,6 +19,14 @@ typedef struct ImageLoaderContext ImageLoaderContext;
 #define IMAGE_LOADER_PRE_EXPAND     (1 << 2)
 
 /**
+ * When an images refcount reaches zero (ie it has been closed as much as it
+ * has been opened), it will be freeded even if the content can't be re-opened
+ * (ie it came from a pipe). This provides a way to ensure that only a single
+ * image is loaded in memory at once.
+ */
+#define IMAGE_LOADER_FORCE_CLOSE     (1 << 3)
+
+/**
  * Create a context with all files from file_names
  * @param file_names - list of string; Note this won't ever be freeded
  * @param num - length of file_names or 0 if file_names is null terminated
