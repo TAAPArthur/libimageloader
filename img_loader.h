@@ -47,6 +47,16 @@ void image_loader_destroy_context(ImageLoaderContext*context);
  */
 ImageLoaderData* image_loader_add_file(ImageLoaderContext* context, const char* file_name);
 
+/**
+ * Add file denoted by fd. Note that fd must be seekable
+ */
+ImageLoaderData* image_loader_add_from_fd(ImageLoaderContext* context, int fd, const char* name);
+
+/**
+ * Add file denoted by fd. Note that fd must be pipe
+ */
+ImageLoaderData* image_loader_add_from_pipe(ImageLoaderContext* context, int fd, const char* name);
+
 
 /**
  * Opens the nth index image and optionally closes currentImage

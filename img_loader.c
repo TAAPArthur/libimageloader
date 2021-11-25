@@ -204,6 +204,9 @@ static int image_loader_load_with_loader(ImageLoaderContext* context, int fd, Im
 
 static ImageLoaderData* _image_loader_load_image(ImageLoaderContext* context, ImageLoaderData*data, int multi_lib_only) {
     int fd = image_data_get_fd(data);
+    if(data->loader)
+        return image_loader_load_with_loader(context, fd, data, data->loader) == 0 ? data : NULL;
+
     for(int i = 0; i < sizeof(img_loaders)/sizeof(img_loaders[0]); i++) {
         if(multi_lib_only && (img_loaders[i].flags & MULTI_LOADER))
             continue;
@@ -271,9 +274,16 @@ ImageLoaderData* image_loader_add_file(ImageLoaderContext* context, const char* 
     return data;
 }
 
-int image_loader_add_from_fd(ImageLoaderContext* context, int fd, const char* name) {
+ImageLoaderData* image_loader_add_from_fd(ImageLoaderContext* context, int fd, const char* name) {
     ImageLoaderData* data = image_loader_add_file(context, name);
-    return image_loader_load_with_loader(context, fd, data, &pipe_loader);
+    data->fd = fd;
+    return data;
+}
+
+ImageLoaderData* image_loader_add_from_pipe(ImageLoaderContext* context, int fd, const char* name) {
+    ImageLoaderData* data = image_loader_add_from_fd(context, fd, name);
+    data->loader = &pipe_loader;
+    return data;
 }
 
 ImageLoaderContext* image_loader_create_context(const char** file_names, int num, int flags) {
@@ -282,7 +292,7 @@ ImageLoaderContext* image_loader_create_context(const char** file_names, int num
     context->size = num ? num : 16;
     for(int i = 0; (!num || i < num) && file_names && file_names[i]; i++) {
         if(file_names[i][0] == '-' && !file_names[i][1])
-            image_loader_add_from_fd(context, STDIN_FILENO, "stdin");
+            image_loader_add_from_pipe(context, STDIN_FILENO, "stdin");
         else
             image_loader_add_file(context, file_names[i]);
     }
