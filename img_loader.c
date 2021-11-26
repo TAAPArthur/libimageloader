@@ -153,12 +153,10 @@ void image_loader_sort(ImageLoaderContext* context, IMAGE_LOADER_SORT_KEY type) 
     }
 }
 
-static void removeInvalid(ImageLoaderContext* context) {
-    int i = 0;
-    for(i = 0;i < context->num && context->data[i]; i++);
-    for(int j = 1; i + j < context->num; i++)
-        context->data[i] = context->data[i + j];
-    context->num = i;
+static void image_loader_remove_image_at_index(ImageLoaderContext* context, int n) {
+    for(int i = n + 1; i < context->num; i++)
+        context->data[i - 1] = context->data[i];
+    context->num--;
 }
 
 void image_loader_close(ImageLoaderData* data, int force) {
@@ -241,7 +239,7 @@ ImageLoaderData* image_loader_open(ImageLoaderContext* context, int index, Image
         if((!data || !data->data) && context->flags & IMAGE_LOADER_REMOVE_INVALID ) {
             image_loader_free_data(context, context->data[index]);
             context->data[index] = NULL;
-            removeInvalid(context);
+            image_loader_remove_image_at_index(context, index);
             return image_loader_open(context, index, currentImage);
         }
     }
