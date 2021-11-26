@@ -77,6 +77,8 @@ ImageLoaderData* image_loader_open(ImageLoaderContext* context, int index, Image
  */
 void image_loader_close(ImageLoaderContext*context, ImageLoaderData* data);
 
+void image_loader_remove_all_invalid_images(ImageLoaderContext* context);
+
 
 typedef enum {
     IMG_SORT_RANDOM,

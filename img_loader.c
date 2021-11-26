@@ -291,6 +291,17 @@ ImageLoaderData* image_loader_add_from_pipe(ImageLoaderContext* context, int fd,
     return data;
 }
 
+void image_loader_remove_all_invalid_images(ImageLoaderContext* context) {
+    for(int i = image_loader_get_num(context) - 1; i >= 0; i--){
+        ImageLoaderData* data = image_loader_open(context, i, NULL);
+        if((!data || !data->data) && !(context->flags & IMAGE_LOADER_REMOVE_INVALID)) {
+            image_loader_remove_image_at_index(context, i);
+            image_loader_close(context, data);
+        }
+
+    }
+}
+
 ImageLoaderContext* image_loader_create_context(const char** file_names, int num, int flags) {
     ImageLoaderContext* context = calloc(1, sizeof(ImageLoaderContext));
     context->flags = flags;
