@@ -2,12 +2,15 @@
 #define SCUTEST_NO_BUFFER
 #define SCUTEST_DEFINE_MAIN
 #include <assert.h>
+#include <fcntl.h>
 #include <scutest/scutest.h>
 #include "../img_loader.h"
 
 const char* TEST_IMAGE_PATHS[] = {"tests/test_image.png", "tests/test_image.png", ".", NULL};
 const char* TEST_IMAGE_PATH_SOME_INVALID[] = {"tests/test_image.png", "tests/invalid_image.png", ".", NULL};
 const char* TEST_IMAGE_PATHS_ZIP[] = {"tests/test_image.zip", NULL};
+
+const char* TEST_IMAGE_ALL_PATHS_INVALID[] = {"tests/invalid_image.png", "another_bad_image.bad", NULL};
 
 /**
  * Example of how to use loader
@@ -39,6 +42,19 @@ SCUTEST(simple_workflow_remove_invalid) {
     image_loader_destroy_context(c); // Free all resources
 }
 
+SCUTEST(create_emtpy_context) {
+    ImageLoaderContext* c = image_loader_create_context(NULL, 0, 0);
+    // manually add from path
+    assert(image_loader_add_file(c, TEST_IMAGE_PATHS[0]));
+
+    int fd = open(TEST_IMAGE_PATHS[0], O_RDONLY | O_CLOEXEC);
+    // add from fd; the fd will be owned by the lib
+    assert(image_loader_add_from_fd(c, fd, "human_name"));
+    assert(image_loader_open(c, 0, NULL));
+    assert(image_loader_open(c, 1, NULL));
+    image_loader_destroy_context(c);
+}
+
 /**
  *
  * The above tests also serve the purpose of documenting usage.
@@ -55,6 +71,8 @@ void destroy_default_context(){
 }
 
 SCUTEST_SET_FIXTURE(create_default_context, destroy_default_context);
+
+SCUTEST(open_close) {}
 
 SCUTEST(open_underflow) {
     assert(!image_loader_open(default_context, -1, NULL));
@@ -80,11 +98,36 @@ SCUTEST(close_reopen) {
     assert(image_loader_open(default_context, 0, current_image));
 }
 
-#if ! defined NO_MINIZ_LOADER || ! defined NO_ZIP_LOADER
 SCUTEST_SET_FIXTURE(NULL, destroy_default_context);
+#if ! defined NO_MINIZ_LOADER || ! defined NO_ZIP_LOADER
 
 SCUTEST(open_zip) {
     default_context = image_loader_create_context(TEST_IMAGE_PATHS_ZIP, 0, 0);
     assert(image_loader_open(default_context, 0, NULL));
 }
 #endif
+
+SCUTEST(open_non_null_terminated) {
+    const char* path[] = {TEST_IMAGE_PATHS[0]};
+    default_context = image_loader_create_context(path, 1, 0);
+    assert(image_loader_get_num(default_context) == 1);
+}
+
+SCUTEST(open_dir_non_recursive) {
+    default_context = image_loader_create_context(NULL, 0, IMAGE_LOADER_REMOVE_INVALID|IMAGE_LOADER_DISABLE_RECURSIVE_DIR_LOADER);
+    assert(image_loader_add_file(default_context, "."));
+    image_loader_open(default_context, 0, NULL);
+    assert(!image_loader_get_num(default_context));
+}
+
+SCUTEST(open_pre_expand) {
+    default_context = image_loader_create_context(NULL, 0, IMAGE_LOADER_PRE_EXPAND);
+    assert(image_loader_add_file(default_context, "."));
+    assert(image_loader_get_num(default_context) > 1);
+}
+
+SCUTEST(open_invalid) {
+    default_context = image_loader_create_context(TEST_IMAGE_ALL_PATHS_INVALID, 0, IMAGE_LOADER_REMOVE_INVALID);
+    while(image_loader_get_num(default_context))
+        image_loader_open(default_context, 0, NULL);
+}

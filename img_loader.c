@@ -193,7 +193,6 @@ void image_loader_destroy_context(ImageLoaderContext*context) {
 
 static int image_loader_load_with_loader(ImageLoaderContext* context, int fd, ImageLoaderData*data, const ImageLoader* img_loader) {
     int ret = img_loader->img_open(context, fd, data);
-    LOG("Loader %s returned %d\n", img_loader->name, ret);
     if (ret == 0) {
         data->loader = img_loader;
         if(data->flags & IMG_DATA_FLIP_RED_BLUE)
@@ -253,7 +252,7 @@ ImageLoaderData* image_loader_open(ImageLoaderContext* context, int index, Image
 }
 
 ImageLoaderData* image_loader_add_file(ImageLoaderContext* context, const char* file_name) {
-    LOG("Attempting to add file %s\n", file_name);
+    LOG("Adding file %s\n", file_name);
     if(context->num == context->size || !context->data) {
         if(context->data)
             context->size *= 2;

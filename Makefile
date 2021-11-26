@@ -15,6 +15,8 @@ install: $(LIB)
 	install -Dt $(DESTDIR)$(PREFIX)/lib $(LIB)
 	install -Dt $(DESTDIR)$(PREFIX)/include/$(PRG) $(PRG).h
 
+
+CFLAGS += -g
 tests/test: tests/tests.o $(PRG).o
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
