@@ -282,6 +282,7 @@ ImageLoaderData* image_loader_add_file(ImageLoaderContext* context, const char* 
 ImageLoaderData* image_loader_add_from_fd(ImageLoaderContext* context, int fd, const char* name) {
     ImageLoaderData* data = image_loader_add_file(context, name);
     data->fd = fd;
+    data->flags |= IMG_DATA_KEEP_OPEN;
     return data;
 }
 
