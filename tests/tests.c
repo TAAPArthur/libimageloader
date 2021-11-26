@@ -162,6 +162,18 @@ SCUTEST(open_invalid) {
         image_loader_open(default_context, 0, NULL);
 }
 
+SCUTEST(add_from_fd_open_close) {
+    default_context = image_loader_create_context(0, 0, 0);
+    int fd = open(TEST_IMAGE_PATHS[0], O_RDONLY | O_CLOEXEC);
+    // add from fd; the fd will be owned by the lib
+    assert(image_loader_add_from_fd(default_context, fd, "human_name"));
+    for(int i = 0; i < 2; i++) {
+        ImageLoaderData* image = image_loader_open(default_context, 0, NULL);
+        assert(image);
+        image_loader_close(default_context, image);
+    }
+}
+
 SCUTEST(sort_images) {
     default_context = image_loader_create_context(0, 0, 0);
     assert(image_loader_add_file(default_context, TEST_IMAGE_PATHS[0]));
