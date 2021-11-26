@@ -131,13 +131,19 @@ static int compareId(const void* a, const void* b) {
     return (*(ImageLoaderData**)a)->id - (*(ImageLoaderData**)b)->id;
 }
 
-void image_loader_sort(ImageLoaderContext* context, IMAGE_LOADER_SORT_KEY type) {
+static int compareRandom(const void* a, const void* b) {
+    return rand() - RAND_MAX/2;
+}
+
+void image_loader_sort(ImageLoaderContext* context, int type) {
     static int (*sort_func[])(const void*, const void* b) = {
+        [IMG_SORT_RANDOM] = compareRandom,
         [IMG_SORT_LOADED] = compareId,
         [IMG_SORT_NAME] = compareName,
         [IMG_SORT_MOD] = compareMod,
         [IMG_SORT_SIZE] = compareSize,
     };
+
     if(!(context->flags & IMAGE_LOADER_LOAD_STATS) && abs(type) > IMG_SORT_NAME)
         for(int i = 0;i < context->num; i++) {
             image_loader_load_stats(context->data[i]);

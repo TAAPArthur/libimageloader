@@ -79,6 +79,7 @@ void image_loader_close(ImageLoaderContext*context, ImageLoaderData* data);
 
 
 typedef enum {
+    IMG_SORT_RANDOM,
     /* Sort images by order they were initially loaded */
     IMG_SORT_LOADED,
     /* Sort images by name */
@@ -87,12 +88,13 @@ typedef enum {
     IMG_SORT_MOD,
     /* Sort images by size time */
     IMG_SORT_SIZE,
+    IMG_SORT_NUM,
 } IMAGE_LOADER_SORT_KEY;
 
 /**
  * Sort images.
  */
-void image_loader_sort(ImageLoaderContext* context, IMAGE_LOADER_SORT_KEY type);
+void image_loader_sort(ImageLoaderContext* context, int type);
 
 const char* image_loader_get_name(const ImageLoaderData*);
 unsigned int image_loader_get_height(const ImageLoaderData*);
