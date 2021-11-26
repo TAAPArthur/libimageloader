@@ -30,7 +30,7 @@ SCUTEST(simple_workflow_remove_invalid) {
     ImageLoaderContext* c = image_loader_create_context(TEST_IMAGE_PATH_SOME_INVALID, 0, IMAGE_LOADER_REMOVE_INVALID);
     ImageLoaderData* current_image = NULL;
     // loop through all images; don't have to worry about going out of bounds
-    for(int i = -1; i < image_loader_get_num(c) + 1; i++) {
+    for(int i = 0; i < image_loader_get_num(c); i++) {
         // close the current image and open the next;
         current_image = image_loader_open(c, i, current_image);
         // iff a valid index is passed in a non-null result will be returned because of IMAGE_LOADER_REMOVE_INVALID
@@ -39,6 +39,17 @@ SCUTEST(simple_workflow_remove_invalid) {
         else
             assert(!current_image);
     }
+    image_loader_destroy_context(c); // Free all resources
+}
+
+SCUTEST(simple_workflow_remove_invalid_with_helper_method) {
+    const char* TEST_IMAGE_PATH_SOME_INVALID[] = {TEST_IMAGE_PATHS[0], "tests/invalid_image.png", NULL};
+    ImageLoaderContext* c = image_loader_create_context(TEST_IMAGE_PATH_SOME_INVALID, 0, 0);
+    int original_images = image_loader_get_num(c);
+    image_loader_remove_all_invalid_images(c);
+    assert(original_images != image_loader_get_num(c));
+    for(int i = 0; i < image_loader_get_num(c); i++)
+        assert(image_loader_open(c, i, NULL));
     image_loader_destroy_context(c); // Free all resources
 }
 
