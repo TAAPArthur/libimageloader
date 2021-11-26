@@ -107,6 +107,15 @@ SCUTEST(open_zip) {
 }
 #endif
 
+#if ! defined NO_CURL
+
+SCUTEST(open_url_bad) {
+    default_context = image_loader_create_context(NULL, 0, IMAGE_LOADER_REMOVE_INVALID);
+    assert(image_loader_add_file(default_context, "http://localhost/__not_a_real_url__"));
+    assert(!image_loader_open(default_context, 0, NULL));
+}
+#endif
+
 SCUTEST(open_non_null_terminated) {
     const char* path[] = {TEST_IMAGE_PATHS[0]};
     default_context = image_loader_create_context(path, 1, 0);

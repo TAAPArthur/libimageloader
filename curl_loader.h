@@ -15,6 +15,8 @@ int curl_load(ImageLoaderContext* context, int _, ImageLoaderData* parent) {
 
     /* init the curl session */
     CURL* curl_handle = curl_easy_init();
+    if(!curl_handle)
+        return -1;
 
     /* set URL to get here */
     curl_easy_setopt(curl_handle, CURLOPT_URL, parent->name);
@@ -27,7 +29,9 @@ int curl_load(ImageLoaderContext* context, int _, ImageLoaderData* parent) {
     /* write the page body to this file handle */
     curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, &fd);
     /* get it! */
-    curl_easy_perform(curl_handle);
+    if(CURLE_OK != curl_easy_perform(curl_handle)) {
+        return -1;
+    }
 
     ImageLoaderData* data = image_loader_add_file(context, parent->name);
     data->flags |= IMG_DATA_KEEP_OPEN;
