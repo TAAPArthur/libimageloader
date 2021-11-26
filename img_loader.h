@@ -66,6 +66,17 @@ ImageLoaderData* image_loader_add_from_pipe(ImageLoaderContext* context, int fd,
  */
 ImageLoaderData* image_loader_open(ImageLoaderContext* context, int index, ImageLoaderData* current_image);
 
+/**
+ * Frees the data that was returned from image_loader_open.
+ * Note that the data may not actually be released because it is still in use
+ * somewhere.
+ *
+ * The data may also not be freed if it can't be re-loaded (ie read from a pipe).
+ * In such a case setting IMAGE_LOADER_FORCE_CLOSE as a context flag would
+ * remove this restriction.
+ */
+void image_loader_close(ImageLoaderContext*context, ImageLoaderData* data);
+
 
 typedef enum {
     /* Sort images by order they were initially loaded */

@@ -159,18 +159,23 @@ static void image_loader_remove_image_at_index(ImageLoaderContext* context, int 
     context->num--;
 }
 
-void image_loader_close(ImageLoaderData* data, int force) {
-    if(!data->data)
+
+void image_loader_close_force(ImageLoaderContext*context, ImageLoaderData* data, int force) {
+    if(!data || !data->data)
         return;
-    if(--data->ref_count == 0 && !(data->flags & IMG_DATA_KEEP_OPEN)|| force) {
+    if(--data->ref_count == 0 && (!(data->flags & IMG_DATA_KEEP_OPEN) || context->flags & IMAGE_LOADER_FORCE_CLOSE)|| force) {
         data->loader->img_close(data);
         data->image_data = NULL;
         data->data = NULL;
     }
 }
 
+void image_loader_close(ImageLoaderContext*context, ImageLoaderData* data) {
+    image_loader_close_force(context, data, 0);
+}
+
 static void image_loader_free_data(ImageLoaderContext*context, ImageLoaderData* data) {
-    image_loader_close(data, 1);
+    image_loader_close_force(context, data, 1);
     if(data->flags & IMG_DATA_FREE_NAME)
         free((void*)data->name);
     free(data);
@@ -243,7 +248,7 @@ ImageLoaderData* image_loader_open(ImageLoaderContext* context, int index, Image
         }
     }
     if(currentImage) {
-        image_loader_close(currentImage, context->flags & IMAGE_LOADER_FORCE_CLOSE);
+        image_loader_close(context, currentImage);
     }
     return data;
 }
