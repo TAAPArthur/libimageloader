@@ -160,7 +160,9 @@ static void image_loader_remove_image_at_index(ImageLoaderContext* context, int 
 }
 
 void image_loader_close(ImageLoaderData* data, int force) {
-    if(--data->ref_count == 0 &&  !(data->flags & IMG_DATA_KEEP_OPEN)|| force) {
+    if(!data->data)
+        return;
+    if(--data->ref_count == 0 && !(data->flags & IMG_DATA_KEEP_OPEN)|| force) {
         data->loader->img_close(data);
         data->image_data = NULL;
         data->data = NULL;
@@ -168,12 +170,9 @@ void image_loader_close(ImageLoaderData* data, int force) {
 }
 
 static void image_loader_free_data(ImageLoaderContext*context, ImageLoaderData* data) {
-    if(data->data)
-        image_loader_close(data, 1);
-
+    image_loader_close(data, 1);
     if(data->flags & IMG_DATA_FREE_NAME)
         free((void*)data->name);
-
     free(data);
     for(int i = context->num - 1; i >= 0; i--)
         if (context->data[i] == data)

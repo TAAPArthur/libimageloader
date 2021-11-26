@@ -8,7 +8,7 @@
 
 const char* TEST_IMAGE_PATHS[] = {"tests/test_image.png", "tests/test_image.png", ".", NULL};
 const char* TEST_IMAGE_PATH_SOME_INVALID[] = {"tests/test_image.png", "tests/invalid_image.png", ".", NULL};
-const char* TEST_IMAGE_PATHS_ZIP[] = {"tests/test_image.zip", NULL};
+const char* TEST_IMAGE_PATHS_ZIP[] = {"tests/test_image.zip", "tests/empty.zip", "tests/test_image.zip", NULL};
 
 const char* TEST_IMAGE_ALL_PATHS_INVALID[] = {"tests/invalid_image.png", "another_bad_image.bad", NULL};
 
@@ -101,9 +101,19 @@ SCUTEST(close_reopen) {
 SCUTEST_SET_FIXTURE(NULL, destroy_default_context);
 #if ! defined NO_MINIZ_LOADER || ! defined NO_ZIP_LOADER
 
+SCUTEST(open_zip_normal) {
+    default_context = image_loader_create_context(TEST_IMAGE_PATHS_ZIP, 1, 0);
+    assert(image_loader_open(default_context, 0, NULL));
+}
+
 SCUTEST(open_zip) {
     default_context = image_loader_create_context(TEST_IMAGE_PATHS_ZIP, 0, 0);
-    assert(image_loader_open(default_context, 0, NULL));
+    ImageLoaderData* image = NULL;
+    /* The key part of this test is verifying we can close an empty multi-loader
+     * without issue
+     */
+    for(int i = 0; i < image_loader_get_num(default_context); i++)
+        image = image_loader_open(default_context, i, image);
 }
 #endif
 
