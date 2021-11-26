@@ -208,7 +208,7 @@ static ImageLoaderData* _image_loader_load_image(ImageLoaderContext* context, Im
         return image_loader_load_with_loader(context, fd, data, data->loader) == 0 ? data : NULL;
 
     for(int i = 0; i < sizeof(img_loaders)/sizeof(img_loaders[0]); i++) {
-        if(multi_lib_only && (img_loaders[i].flags & MULTI_LOADER))
+        if(multi_lib_only && !(img_loaders[i].flags & MULTI_LOADER))
             continue;
         if(fd == -1 && !(img_loaders[i].flags & NO_FD))
             continue;
@@ -261,16 +261,14 @@ ImageLoaderData* image_loader_add_file(ImageLoaderContext* context, const char* 
     }
     ImageLoaderData* data = calloc(1, sizeof(ImageLoaderData));
     data->fd = -1;
-    context->data[context->num] = data ;
+    context->data[context->num++] = data ;
     data->id = context->counter++;
     data->name = file_name;
     if(context->flags & IMAGE_LOADER_LOAD_STATS)
-        image_loader_load_stats(context->data[context->num]);
+        image_loader_load_stats(data);
     if(context->flags & IMAGE_LOADER_PRE_EXPAND) {
-        if(_image_loader_load_image(context, context->data[context->num], 1));
+        if(_image_loader_load_image(context, data, 1));
     }
-    context->num++;
-    LOG("Added file %s %d\n", file_name, context->num);
     return data;
 }
 
