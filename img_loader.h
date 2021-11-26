@@ -82,6 +82,8 @@ void image_loader_remove_all_invalid_images(ImageLoaderContext* context);
 
 typedef enum {
     IMG_SORT_RANDOM,
+    /* Sort images by order they were initially added */
+    IMG_SORT_ADDED,
     /* Sort images by order they were initially loaded */
     IMG_SORT_LOADED,
     /* Sort images by name */
