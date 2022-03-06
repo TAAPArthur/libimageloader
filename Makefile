@@ -15,6 +15,10 @@ install: $(LIB)
 	install -Dt $(DESTDIR)$(PREFIX)/lib $(LIB)
 	install -Dt $(DESTDIR)$(PREFIX)/include/$(PRG) $(PRG).h
 
+install-single-header:
+	./extra/make_single_header.sh
+	install -Dt $(DESTDIR)$(PREFIX)/include/$(PRG)_single_header.h single_header.h
+
 examples/example: examples/example.o $(PRG).o
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 

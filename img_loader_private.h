@@ -5,9 +5,9 @@
 
 #ifdef VERBOSE
 #include <stdio.h>
-#define LOG(...) printf(__VA_ARGS__)
+#define IMG_LIB_LOG(...) printf(__VA_ARGS__)
 #else
-#define LOG(...)
+#define IMG_LIB_LOG(...)
 #endif
 
 #define IMG_DATA_KEEP_OPEN      (1 << 0)

@@ -1,5 +1,5 @@
 #!/bin/sh
-exec > config.mk
+exec > "${1:-config.mk}"
 for arg in "$@"; do
     case "$arg" in
         --enable-all)GLOBAL_DEFAULT=1;;

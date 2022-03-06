@@ -1,7 +1,9 @@
+#ifndef _GNU_SOURCE
 #define _GNU_SOURCE
+#endif
+#include "img_loader_private.h"
 #include <fcntl.h>
 #include <unistd.h>
-#include "img_loader_private.h"
 
 int pipe_load(ImageLoaderContext* context, int pipeFD, ImageLoaderData* parent) {
     int fd = image_loader_create_memory_file(parent->name, 0);
