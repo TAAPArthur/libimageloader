@@ -1,10 +1,10 @@
 #define SCUTEST_IMPLEMENTATION
 #define SCUTEST_NO_BUFFER
 #define SCUTEST_DEFINE_MAIN
+#include "../img_loader.h"
 #include <assert.h>
 #include <fcntl.h>
 #include <scutest/scutest.h>
-#include "../img_loader.h"
 
 const char* TEST_IMAGE_PATHS[] = {"tests/test_image.png", "tests/test_image.png", ".", NULL};
 const char* TEST_IMAGE_PATH_SOME_INVALID[] = {"tests/test_image.png", "tests/invalid_image.png", ".", NULL};
@@ -53,7 +53,7 @@ SCUTEST(simple_workflow_remove_invalid_with_helper_method) {
     image_loader_destroy_context(c); // Free all resources
 }
 
-SCUTEST(create_emtpy_context) {
+SCUTEST(create_empty_context) {
     ImageLoaderContext* c = image_loader_create_context(NULL, 0, 0);
     // manually add from path
     assert(image_loader_add_file(c, TEST_IMAGE_PATHS[0]));
