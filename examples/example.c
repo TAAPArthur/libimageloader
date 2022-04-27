@@ -1,7 +1,9 @@
+/* cc example.c -o example -limgloader */
+
 #include "../img_loader.h"
 #include <stdio.h>
 
-/**
+/*
  * This is a dummy program to dump every byte of an uncompressed image(s) which
  * are passed in as args.
  * Every row of the image will be printed space separated on the same line
