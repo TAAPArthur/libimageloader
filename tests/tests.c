@@ -1,5 +1,4 @@
 #define SCUTEST_IMPLEMENTATION
-#define SCUTEST_NO_BUFFER
 #define SCUTEST_DEFINE_MAIN
 #include "../img_loader.h"
 #include <assert.h>

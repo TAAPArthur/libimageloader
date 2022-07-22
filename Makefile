@@ -18,7 +18,7 @@ install: $(LIB)
 examples/example: examples/example.o $(PRG).o
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
-CFLAGS += -g
+tests/test: CFLAGS += -g -DVERBOSE
 tests/test: tests/tests.o $(PRG).o
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
