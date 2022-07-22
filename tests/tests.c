@@ -6,9 +6,10 @@
 #include <fcntl.h>
 #include <scutest/scutest.h>
 
-const char* TEST_IMAGE_PATHS[] = {"tests/test_image.png", "tests/test_image.png", ".", NULL};
-const char* TEST_IMAGE_PATH_SOME_INVALID[] = {"tests/test_image.png", "tests/invalid_image.png", ".", NULL};
-const char* TEST_IMAGE_PATHS_ZIP[] = {"tests/test_image.zip", "tests/empty.zip", "tests/test_image.zip", NULL};
+#define TEST_IMAGE_PREFIX "tests/test_images/"
+const char* TEST_IMAGE_PATHS[] = {TEST_IMAGE_PREFIX "/png/test_image.png", TEST_IMAGE_PREFIX "/png/test_image.png", NULL};
+const char* TEST_IMAGE_PATH_SOME_INVALID[] = {TEST_IMAGE_PREFIX "/png/test_image.png", "tests/invalid_image.png", ".", NULL};
+const char* TEST_IMAGE_PATHS_ZIP[] = {TEST_IMAGE_PREFIX "/zip/test_image.zip", TEST_IMAGE_PREFIX "/zip", TEST_IMAGE_PREFIX "test_image.zip", NULL};
 
 const char* TEST_IMAGE_ALL_PATHS_INVALID[] = {"tests/invalid_image.png", "another_bad_image.bad", NULL};
 
