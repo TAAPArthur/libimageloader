@@ -11,6 +11,10 @@
 #include "dir_loader.h"
 #endif
 
+#ifndef NO_PPM_ASCII_LOADER
+#include "ppm_ascii_loader.h"
+#endif
+
 #ifndef NO_STB_IMAGE_LOADER
 #include "stb_image_loader.h"
 #endif
@@ -65,6 +69,9 @@ static const ImageLoader img_loaders[] = {
 #endif
 #ifndef NO_STB_IMAGE_LOADER
     CREATE_LOADER(stb_image),
+#endif
+#ifndef NO_PPM_ASCII_LOADER
+    CREATE_LOADER(ppm_ascii),
 #endif
 #ifndef NO_MINIZ_LOADER
     CREATE_PARENT_LOADER(miniz, MULTI_LOADER),

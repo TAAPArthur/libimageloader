@@ -13,19 +13,46 @@ const char* TEST_IMAGE_PATHS_ZIP[] = {TEST_IMAGE_PREFIX "/zip/test_image.zip", T
 
 const char* TEST_IMAGE_ALL_PATHS_INVALID[] = {"tests/invalid_image.png", "another_bad_image.bad", NULL};
 
+static void simple_load_test(const char** args) {
+    // Load all files passed TEST_IMAGE_PATHS; TEST_IMAGE_PATHS is in the same
+    // format as argv from main()
+    ImageLoaderContext* c = image_loader_create_context(args, 0, IMAGE_LOADER_PRE_EXPAND);
+    for(int i = 0; i < image_loader_get_num(c); i++) {
+        ImageLoaderData* current_image = image_loader_open(c, i, NULL); // Open the first image
+        assert(current_image);
+        const char * path = image_loader_get_name(current_image);
+        assert(path);
+        if(path[strlen(path) - 1] != '/') {
+            char* data = image_loader_get_data(current_image);
+            assert(data);
+            int width = image_loader_get_width(current_image);
+            int height = image_loader_get_height(current_image);
+            assert(width);
+            assert(height);
+            int size = width * height * 4;
+            char temp = data[0];
+            temp = data[size - 1];
+        }
+        // Do stuff like draw the image
+    }
+    image_loader_destroy_context(c); // Free all resources
+}
 /**
  * Example of how to use loader
  */
 SCUTEST(simple_workflow) {
-    // Load all files passed TEST_IMAGE_PATHS; TEST_IMAGE_PATHS is in the same
-    // format as argv from main()
-    ImageLoaderContext* c = image_loader_create_context(TEST_IMAGE_PATHS, 0, 0);
-    ImageLoaderData* current_image = image_loader_open(c, 0, NULL); // Open the first image
-    // Do stuff like draw the image
-    current_image = image_loader_open(c, 1, current_image); // Open the 2nd image and close the first
-    // // repeat until satisfied then
-    image_loader_destroy_context(c); // Free all resources
+    const char* path[] = {"tests/test_images/png/test_image.png", NULL};
+    simple_load_test(path);
 }
+
+#ifndef NO_DIR_LOADER
+#ifndef defined NO_PPM_LOADER
+SCUTEST(simple_workflow_ppm) {
+    const char* path[] = {TEST_IMAGE_PREFIX "ppm/", NULL};
+    simple_load_test(path);
+}
+#endif
+#endif
 
 SCUTEST(simple_workflow_remove_invalid) {
     ImageLoaderContext* c = image_loader_create_context(TEST_IMAGE_PATH_SOME_INVALID, 0, IMAGE_LOADER_REMOVE_INVALID);
