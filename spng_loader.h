@@ -1,6 +1,6 @@
+#include "img_loader_private.h"
 #include <spng.h>
 #include <stdlib.h>
-#include "img_loader_private.h"
 
 int spng_load(ImageLoaderContext* context, int fd, ImageLoaderData* data) {
 

@@ -1,6 +1,6 @@
+#include "img_loader_private.h"
 #include <Imlib2.h>
 #include <unistd.h>
-#include "img_loader_private.h"
 
 int imlib2_load(ImageLoaderContext* context, int fd, ImageLoaderData* data) {
     int fd2 = dup(fd);

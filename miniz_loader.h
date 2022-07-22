@@ -1,8 +1,8 @@
+#include "img_loader_private.h"
 #include <miniz.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include "img_loader_private.h"
 
 static size_t miniz_file_write_func(void *pOpaque, mz_uint64 file_ofs, const void *pBuf, size_t n){
     return write(*(int*)pOpaque, pBuf, n);

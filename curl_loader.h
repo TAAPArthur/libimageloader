@@ -1,8 +1,8 @@
 #include <string.h>
 #include <unistd.h>
 
-#include <curl/curl.h>
 #include "img_loader_private.h"
+#include <curl/curl.h>
 
 static size_t write_data(void *ptr, size_t size, size_t nmemb, int*fd) {
     return write(*fd, ptr, size * nmemb);

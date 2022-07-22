@@ -1,8 +1,8 @@
+#include "img_loader_private.h"
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 #include <zip.h>
-#include "img_loader_private.h"
 
 int zip_load(ImageLoaderContext* context, int fd, ImageLoaderData* parent) {
     int errorp;

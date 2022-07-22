@@ -1,8 +1,8 @@
+#include "img_loader_private.h"
 #include <dirent.h>
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
-#include "img_loader_private.h"
+#include <string.h>
 
 int dir_load(ImageLoaderContext* context, int fd, ImageLoaderData* data) {
     const char*path = data->name;
