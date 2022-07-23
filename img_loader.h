@@ -52,6 +52,8 @@ ImageLoaderData* image_loader_add_file(ImageLoaderContext* context, const char* 
  */
 ImageLoaderData* image_loader_add_from_fd(ImageLoaderContext* context, int fd, const char* name);
 
+ImageLoaderData* image_loader_add_from_fd_with_flags(ImageLoaderContext* context, int fd, const char* file_name, unsigned int flags);
+
 /**
  * Add file denoted by fd. Note that fd must be pipe
  */

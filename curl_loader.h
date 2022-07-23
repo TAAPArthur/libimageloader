@@ -33,14 +33,11 @@ int curl_load(ImageLoaderContext* context, int _, ImageLoaderData* parent) {
         return -1;
     }
 
-    ImageLoaderData* data = image_loader_add_file(context, parent->name);
-    data->flags |= IMG_DATA_KEEP_OPEN;
-    data->fd = fd;
+    ImageLoaderData* data = image_loader_add_from_fd_with_flags(context, fd, parent->name, IMG_DATA_KEEP_OPEN);
     lseek(fd, 0, SEEK_SET);
 
     /* cleanup curl stuff */
     curl_easy_cleanup(curl_handle);
-
 
     curl_global_cleanup();
     return 0;

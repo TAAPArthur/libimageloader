@@ -25,10 +25,9 @@ int miniz_load(ImageLoaderContext* context, int fd, ImageLoaderData* parent) {
         const char* name = strdup(file_stat.m_filename);
         int fd = image_loader_create_memory_file(name, 0);
         mz_zip_reader_extract_to_callback(&zip_archive, i, miniz_file_write_func, &fd, 0);
-        ImageLoaderData* data = image_loader_add_file(context, name);
+
+        ImageLoaderData* data = image_loader_add_from_fd_with_flags(context, fd, name, IMG_DATA_KEEP_OPEN | IMG_DATA_FREE_NAME);
         image_loader_set_stats(data, file_stat.m_uncomp_size, parent->mod_time);
-        data->fd = fd;
-        data->flags |= IMG_DATA_KEEP_OPEN | IMG_DATA_FREE_NAME;
     }
     mz_zip_reader_end(&zip_archive);
     close(fd);

@@ -278,7 +278,7 @@ ImageLoaderData* image_loader_open(ImageLoaderContext* context, int index, Image
     return data;
 }
 
-ImageLoaderData* image_loader_add_file(ImageLoaderContext* context, const char* file_name) {
+ImageLoaderData* image_loader_add_from_fd_with_flags(ImageLoaderContext* context, int fd, const char* file_name, unsigned int flags) {
     IMG_LIB_LOG("Adding file %s\n", file_name);
     if(context->num == context->size || !context->data) {
         if(context->data)
@@ -286,10 +286,11 @@ ImageLoaderData* image_loader_add_file(ImageLoaderContext* context, const char* 
         context->data = realloc(context->data, context->size * sizeof(context->data[0]));
     }
     ImageLoaderData* data = calloc(1, sizeof(ImageLoaderData));
-    data->fd = -1;
+    data->fd = fd;
     context->data[context->num++] = data ;
     data->id = context->counter++;
     data->name = file_name;
+    data->flags = flags;
     if(context->flags & IMAGE_LOADER_LOAD_STATS)
         image_loader_load_stats(data);
     if(context->flags & IMAGE_LOADER_PRE_EXPAND) {
@@ -298,11 +299,12 @@ ImageLoaderData* image_loader_add_file(ImageLoaderContext* context, const char* 
     return data;
 }
 
+ImageLoaderData* image_loader_add_file(ImageLoaderContext* context, const char* file_name) {
+    return image_loader_add_from_fd_with_flags(context, -1, file_name, 0);
+}
+
 ImageLoaderData* image_loader_add_from_fd(ImageLoaderContext* context, int fd, const char* name) {
-    ImageLoaderData* data = image_loader_add_file(context, name);
-    data->fd = fd;
-    data->flags |= IMG_DATA_KEEP_OPEN;
-    return data;
+    return image_loader_add_from_fd_with_flags(context, fd, name, IMG_DATA_KEEP_OPEN);
 }
 
 ImageLoaderData* image_loader_add_from_pipe(ImageLoaderContext* context, int fd, const char* name) {
