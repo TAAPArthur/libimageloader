@@ -32,6 +32,6 @@ int miniz_load(ImageLoaderContext* context, int fd, ImageLoaderData* parent) {
         image_loader_set_stats(data, file_stat.m_uncomp_size, parent->mod_time);
     }
     mz_zip_reader_end(&zip_archive);
-    close(fd);
+    fclose(file);
     return 0;
 }

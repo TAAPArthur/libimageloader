@@ -92,8 +92,10 @@ static ImageLoader pipe_loader = CREATE_PARENT_LOADER(pipe, MULTI_LOADER | NO_SE
 
 static int image_data_get_fd(ImageLoaderData* data) {
     int fd = data->fd;
-    if(fd == -1)
+    if(fd == -1) {
         fd = open(data->name, O_RDONLY | O_CLOEXEC);
+        data->fd = fd;
+    }
     return fd;
 }
 
@@ -180,12 +182,19 @@ static void image_loader_remove_image_at_index(ImageLoaderContext* context, int 
 
 
 void image_loader_close_force(ImageLoaderContext*context, ImageLoaderData* data, int force) {
-    if(!data || !data->data)
+    if (!data || !data->data) {
+        if(data && data->fd != -1) {
+            close(data->fd);
+            data->fd = -1;
+        }
         return;
-    if(--data->ref_count == 0 && (!(data->flags & IMG_DATA_KEEP_OPEN) || context->flags & IMAGE_LOADER_FORCE_CLOSE)|| force) {
+    }
+    if (--data->ref_count == 0 && (!(data->flags & IMG_DATA_KEEP_OPEN) || context->flags & IMAGE_LOADER_FORCE_CLOSE)|| force) {
         data->loader->img_close(data);
         data->image_data = NULL;
         data->data = NULL;
+        close(data->fd);
+        data->fd = -1;
     }
 }
 
@@ -238,13 +247,18 @@ static ImageLoaderData* _image_loader_load_image(ImageLoaderContext* context, Im
             continue;
         if(fd == -1 && !(img_loaders[i].flags & NO_FD))
             continue;
-        if(image_loader_load_with_loader(context, fd, data, &img_loaders[i]) == 0)
+        if(image_loader_load_with_loader(context, fd, data, &img_loaders[i]) == 0) {
+            IMG_LIB_LOG("Found loader %s for %s\n", img_loaders[i].name, data->name);
+            if(fd != -1)
+                close(fd);
             return data;
+        }
         if(!(img_loaders[i].flags & NO_SEEK))
             lseek(fd, 0, SEEK_SET);
     }
     if(fd != -1)
         close(fd);
+    IMG_LIB_LOG("Could not load %s\n", data->name);
     return NULL;
 }
 
