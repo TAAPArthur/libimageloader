@@ -39,6 +39,7 @@ typedef struct ImageLoaderContext {
     int size;
     unsigned int counter;
     unsigned int flags;
+    unsigned int disabled_loaders;
 } ImageLoaderContext;
 
 void image_loader_set_stats(ImageLoaderData*data, long size, long mod_time);

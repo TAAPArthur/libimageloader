@@ -100,6 +100,22 @@ typedef enum {
  */
 void image_loader_sort(ImageLoaderContext* context, int type);
 
+typedef enum {
+    IMG_LOADER_DIR,
+    IMG_LOADER_SPNG,
+    IMG_LOADER_STB_IMAGE,
+    IMG_LOADER_PPM_ASCII,
+    IMG_LOADER_MINIZ,
+    IMG_LOADER_ZIP,
+    IMG_LOADER_IMLIB2,
+    IMG_LOADER_CURL,
+} IMAGE_LOADER_INDEX;
+
+void image_loader_enable_loader_only(ImageLoaderContext* context, IMAGE_LOADER_INDEX loader);
+void image_loader_enable_loader_only_mask(ImageLoaderContext* context, unsigned int loaders);
+unsigned int image_loader_get_multi_loader_masks();
+static inline unsigned int image_loader_get_nonmulti_loader_masks() {return ~image_loader_get_multi_loader_masks();};
+
 const char* image_loader_get_name(const ImageLoaderData*);
 unsigned int image_loader_get_height(const ImageLoaderData*);
 unsigned int image_loader_get_num(const ImageLoaderContext* context);

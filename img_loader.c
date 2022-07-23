@@ -57,33 +57,34 @@ typedef struct ImageLoader {
     void (*img_close)(ImageLoaderData*);
     char flags;
 } ImageLoader;
-#define CREATE_LOADER(NAME) { # NAME, NAME ## _load, .img_close= NAME ## _close}
+#define CREATE_LOADER_WITH_FLAGS(NAME, FLAGS) { # NAME, NAME ## _load, .img_close= NAME ## _close, .flags=FLAGS}
+#define CREATE_LOADER(NAME) CREATE_LOADER_WITH_FLAGS(NAME, 0)
 #define CREATE_PARENT_LOADER(NAME, FLAGS){  # NAME , NAME ## _load, .flags = FLAGS}
 
 static const ImageLoader img_loaders[] = {
 #ifndef NO_DIR_LOADER
-    CREATE_PARENT_LOADER(dir, MULTI_LOADER | NO_SEEK),
+    [IMG_LOADER_DIR] = CREATE_PARENT_LOADER(dir, MULTI_LOADER | NO_SEEK),
 #endif
 #ifndef NO_SPNG_LOADER
-    CREATE_LOADER(spng),
+    [IMG_LOADER_SPNG] = CREATE_LOADER(spng),
 #endif
 #ifndef NO_STB_IMAGE_LOADER
-    CREATE_LOADER(stb_image),
+    [IMG_LOADER_STB_IMAGE] = CREATE_LOADER(stb_image),
 #endif
 #ifndef NO_PPM_ASCII_LOADER
-    CREATE_LOADER(ppm_ascii),
+    [IMG_LOADER_PPM_ASCII] = CREATE_LOADER(ppm_ascii),
 #endif
 #ifndef NO_MINIZ_LOADER
-    CREATE_PARENT_LOADER(miniz, MULTI_LOADER),
+    [IMG_LOADER_MINIZ] = CREATE_PARENT_LOADER(miniz, MULTI_LOADER),
 #endif
 #ifndef NO_ZIP_LOADER
-    CREATE_PARENT_LOADER(zip, MULTI_LOADER),
+    [IMG_LOADER_ZIP] = CREATE_PARENT_LOADER(zip, MULTI_LOADER),
 #endif
 #ifndef NO_IMLIB2_LOADER
-    CREATE_LOADER(imlib2),
+    [IMG_LOADER_IMLIB2] = CREATE_LOADER(imlib2),
 #endif
 #ifndef NO_CURL_LOADER
-    CREATE_PARENT_LOADER(curl, MULTI_LOADER | NO_FD | NO_SEEK),
+    [IMG_LOADER_CURL] = CREATE_PARENT_LOADER(curl, MULTI_LOADER | NO_FD | NO_SEEK),
 #endif
 };
 
@@ -218,6 +219,7 @@ static int image_loader_load_with_loader(ImageLoaderContext* context, int fd, Im
         if(data->flags & IMG_DATA_FLIP_RED_BLUE)
             image_loader_flip_red_blue(data);
         data->loaded_id = context->counter++;
+        assert(!data->data == (img_loader->flags & MULTI_LOADER));
     }
     return ret;
 }
@@ -229,6 +231,9 @@ static ImageLoaderData* _image_loader_load_image(ImageLoaderContext* context, Im
         return image_loader_load_with_loader(context, fd, data, data->loader) == 0 ? data : NULL;
 
     for(int i = 0; i < sizeof(img_loaders)/sizeof(img_loaders[0]); i++) {
+        // Skip if disabled for the context or not compiled in
+        if (context->disabled_loaders & (1 << i) || !img_loaders[i].name)
+            continue;
         if(multi_lib_only && !(img_loaders[i].flags & MULTI_LOADER))
             continue;
         if(fd == -1 && !(img_loaders[i].flags & NO_FD))
@@ -328,6 +333,27 @@ ImageLoaderContext* image_loader_create_context(const char** file_names, int num
             image_loader_add_file(context, file_names[i]);
     }
     return context;
+}
+
+void image_loader_enable_loader_only(ImageLoaderContext* context, IMAGE_LOADER_INDEX loader) {
+    image_loader_enable_loader_only_mask(context, 1 << loader);
+}
+
+void image_loader_enable_loader_only_mask(ImageLoaderContext* context, unsigned loaders) {
+    context->disabled_loaders = loaders;
+    context->disabled_loaders = ~context->disabled_loaders;
+    IMG_LIB_LOG("Disabled mask 0x%hx from 0x%hx\n", context->disabled_loaders, loaders);
+
+}
+
+unsigned int image_loader_get_multi_loader_masks() {
+    unsigned int mask = 0;
+    for(int i = 0; i < sizeof(img_loaders)/sizeof(img_loaders[0]); i++) {
+        if(img_loaders[i].flags & MULTI_LOADER) {
+            mask |= 1 << i;
+        }
+    }
+    return mask;
 }
 
 const char* image_loader_get_name(const ImageLoaderData* data){return data->name;}

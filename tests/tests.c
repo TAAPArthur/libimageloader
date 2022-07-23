@@ -2,6 +2,7 @@
 #define SCUTEST_DEFINE_MAIN
 #include "../img_loader.h"
 #include <assert.h>
+#include <dirent.h>
 #include <fcntl.h>
 #include <scutest/scutest.h>
 
@@ -12,17 +13,20 @@ const char* TEST_IMAGE_PATHS_ZIP[] = {TEST_IMAGE_PREFIX "/zip/test_image.zip", T
 
 const char* TEST_IMAGE_ALL_PATHS_INVALID[] = {"tests/invalid_image.png", "another_bad_image.bad", NULL};
 
-static void simple_load_test(const char** args) {
+static void simple_load_test(const char** args, unsigned mask) {
     // Load all files passed TEST_IMAGE_PATHS; TEST_IMAGE_PATHS is in the same
     // format as argv from main()
-    ImageLoaderContext* c = image_loader_create_context(args, 0, IMAGE_LOADER_PRE_EXPAND);
+    ImageLoaderContext* c = image_loader_create_context(args, 0, 0);
+    if (mask) {
+        image_loader_enable_loader_only_mask(c, mask | (1 << IMG_LOADER_DIR));
+    }
     for(int i = 0; i < image_loader_get_num(c); i++) {
         ImageLoaderData* current_image = image_loader_open(c, i, NULL); // Open the first image
         assert(current_image);
         const char * path = image_loader_get_name(current_image);
         assert(path);
-        if(path[strlen(path) - 1] != '/') {
-            char* data = image_loader_get_data(current_image);
+        char* data = image_loader_get_data(current_image);
+        if(data) {
             assert(data);
             int width = image_loader_get_width(current_image);
             int height = image_loader_get_height(current_image);
@@ -36,22 +40,99 @@ static void simple_load_test(const char** args) {
     }
     image_loader_destroy_context(c); // Free all resources
 }
+
+
+
+static int starting_number_of_fds;
+
+static int getNumberOfFilesInDir(const char* dirname) {
+    DIR* d = opendir(dirname);
+    if(!d)
+        return -1;
+    struct dirent * dir;
+    int count = 0;
+    while ((dir = readdir(d)) != NULL) {
+        if(dir->d_name[0] == '.')
+            continue;
+        count++;
+    }
+    closedir(d);
+    return count;
+}
+void setup_fd_check(){
+    starting_number_of_fds = getNumberOfFilesInDir("/proc/self/fd");
+}
+
+void teardown_fd_check(){
+    assert(starting_number_of_fds == getNumberOfFilesInDir("/proc/self/fd"));
+}
+
+SCUTEST_SET_FIXTURE(setup_fd_check, teardown_fd_check);
+#ifndef NO_DIR_LOADER
+
+#ifndef NO_PPM_ASCII_LOADER
+SCUTEST(simple_workflow_ppm_ascii) {
+    const char* path[] = {TEST_IMAGE_PREFIX "ppm/", NULL};
+    simple_load_test(path, 1 << IMG_LOADER_PPM_ASCII);
+}
+#endif
+
+#ifndef NO_STB_IMAGE_LOADER
+SCUTEST(simple_workflow_stb_image) {
+    const char* path[] = {TEST_IMAGE_PREFIX "png/", NULL};
+    simple_load_test(path, 1 << IMG_LOADER_STB_IMAGE);
+}
+#endif
+
+#ifndef NO_SPNG_LOADER
+SCUTEST(simple_workflow_spng) {
+    const char* path[] = {TEST_IMAGE_PREFIX "png/", NULL};
+    simple_load_test(path, 1 << IMG_LOADER_SPNG);
+}
+#endif
+
+#ifndef NO_IMLIB2_LOADER
+SCUTEST(simple_workflow_imlib2) {
+    const char* path[] = {TEST_IMAGE_PREFIX "png/", NULL};
+    simple_load_test(path, 1 << IMG_LOADER_IMLIB2);
+}
+#endif
+#endif
+
+#ifndef NO_MINIZ_LOADER
+SCUTEST(simple_workflow_miniz) {
+    const char* path[] = {TEST_IMAGE_PREFIX "zip/test_image.zip", NULL};
+    simple_load_test(path, image_loader_get_nonmulti_loader_masks() | (1 << IMG_LOADER_MINIZ));
+}
+#endif
+
+#ifndef NO_ZIP_LOADER
+SCUTEST(simple_workflow_zip) {
+    const char* path[] = {TEST_IMAGE_PREFIX "zip/test_image.zip", NULL};
+    simple_load_test(path, image_loader_get_nonmulti_loader_masks() | (1 << IMG_LOADER_MINIZ));
+}
+#endif
+
+#ifndef NO_CURL_LOADER
+SCUTEST(simple_workflow_curl) {
+    char buffer[512] = "file://";
+    int pwdLen = strlen(buffer);
+    assert(getcwd(buffer + pwdLen, sizeof(buffer) - pwdLen));
+    pwdLen = strlen(buffer);
+    strncat(buffer, "/" TEST_IMAGE_PREFIX "png/test_image.png", sizeof(buffer) - pwdLen);
+    const char* path[] = {buffer, NULL};
+    simple_load_test(path, image_loader_get_nonmulti_loader_masks() | (1 << IMG_LOADER_CURL));
+}
+#endif
+
 /**
  * Example of how to use loader
  */
 SCUTEST(simple_workflow) {
     const char* path[] = {"tests/test_images/png/test_image.png", NULL};
-    simple_load_test(path);
+    simple_load_test(path, 0);
 }
 
-#ifndef NO_DIR_LOADER
-#ifndef defined NO_PPM_LOADER
-SCUTEST(simple_workflow_ppm) {
-    const char* path[] = {TEST_IMAGE_PREFIX "ppm/", NULL};
-    simple_load_test(path);
-}
-#endif
-#endif
 
 SCUTEST(simple_workflow_remove_invalid) {
     ImageLoaderContext* c = image_loader_create_context(TEST_IMAGE_PATH_SOME_INVALID, 0, IMAGE_LOADER_REMOVE_INVALID);
