@@ -9,7 +9,7 @@ static size_t write_data(void *ptr, size_t size, size_t nmemb, int*fd) {
 }
 
 int curl_load(ImageLoaderContext* context, int _, ImageLoaderData* parent) {
-    if(strstr(parent->name, "http") != parent->name)
+    if(!strstr(parent->name, "://"))
         return -1;
     curl_global_init(CURL_GLOBAL_ALL);
 
