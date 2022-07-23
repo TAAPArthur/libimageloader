@@ -203,7 +203,7 @@ static void image_loader_free_data(ImageLoaderContext*context, ImageLoaderData* 
 }
 
 void image_loader_destroy_context(ImageLoaderContext*context) {
-    LOG("Destroy context\n");
+    IMG_LIB_LOG("Destroy context\n");
     for(int i = context->num - 1; i >= 0; i--){
         image_loader_free_data(context, context->data[i]);
     }
@@ -223,6 +223,7 @@ static int image_loader_load_with_loader(ImageLoaderContext* context, int fd, Im
 }
 
 static ImageLoaderData* _image_loader_load_image(ImageLoaderContext* context, ImageLoaderData*data, int multi_lib_only) {
+    IMG_LIB_LOG("Loading file %s\n", data->name);
     int fd = image_data_get_fd(data);
     if(data->loader)
         return image_loader_load_with_loader(context, fd, data, data->loader) == 0 ? data : NULL;
@@ -273,7 +274,7 @@ ImageLoaderData* image_loader_open(ImageLoaderContext* context, int index, Image
 }
 
 ImageLoaderData* image_loader_add_file(ImageLoaderContext* context, const char* file_name) {
-    LOG("Adding file %s\n", file_name);
+    IMG_LIB_LOG("Adding file %s\n", file_name);
     if(context->num == context->size || !context->data) {
         if(context->data)
             context->size *= 2;
@@ -341,5 +342,3 @@ int image_loader_create_memory_file(const char* name, int size) {
         ftruncate(fd, size);
     return fd;
 }
-
-
