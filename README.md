@@ -28,12 +28,14 @@ image_loader_destroy_context(c); // Free all resources
 * All dependencies can be compiled out
 
 # Backends
+* [farbfeld](https://tools.suckless.org/farbfeld/) (farbfeld)
+* [ffmpeg](https://ffmpeg.org/) (video formats)
+* [Imlib2](https://docs.enlightenment.org/api/imlib2/html/) (many image formats)
+* [libcurl](https://curl.se/) (remote files)
+* [libzip](https://libzip.org/)  (compressed formats)
+* [miniz](https://github.com/richgel999/miniz) (compressed formats)
 * [spng](https://libspng.org/) (png)
-* [stb_image](https://github.com/nothings/stb/blob/master/stb_image.h) (jpeg, png, tga, bmp, psd, gif, hdr, pic, pnm)
-* [miniz](https://github.com/richgel999/miniz) (zip, cbz, epub)
-* [libzip](https://libzip.org/) (zip, cbz, epub)
-* [libcurl](https://curl.se/) (remote images)
-* [Imlib2](https://docs.enlightenment.org/api/imlib2/html/) (peg, gif, ppm, pgm, xpm, png, tiff and eim)
+* [stb_image](https://github.com/nothings/stb/blob/master/stb_image.h) (many image formats)
 
 More backends can be added given they follow the requirement of being able to be integrated in under 50 lines, don't have dependencies, and don't allocate memory unless they are used and release all memory when no longer needed. Imlib2 and libcurl break these last requirements. Being thread safe is a plus which libcurl also breaks.
 
