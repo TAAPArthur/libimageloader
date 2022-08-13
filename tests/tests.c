@@ -77,6 +77,13 @@ SCUTEST(simple_workflow_ppm_ascii) {
 }
 #endif
 
+#ifndef NO_FARBFELD_LOADER
+SCUTEST(simple_workflow_farbfeld) {
+    const char* path[] = {TEST_IMAGE_PREFIX "farbfeld/", NULL};
+    simple_load_test(path, 1 << IMG_LOADER_FARBFELD);
+}
+#endif
+
 #ifndef NO_STB_IMAGE_LOADER
 SCUTEST(simple_workflow_stb_image) {
     const char* path[] = {TEST_IMAGE_PREFIX "png/", NULL};

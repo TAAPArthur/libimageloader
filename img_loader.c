@@ -17,6 +17,10 @@
 #include "ppm_ascii_loader.h"
 #endif
 
+#ifndef NO_FARBFELD_LOADER
+#include "farbfeld_loader.h"
+#endif
+
 #ifndef NO_STB_IMAGE_LOADER
 #include "stb_image_loader.h"
 #endif
@@ -76,6 +80,9 @@ static const ImageLoader img_loaders[] = {
 #endif
 #ifndef NO_STB_IMAGE_LOADER
     [IMG_LOADER_STB_IMAGE] = CREATE_LOADER(stb_image),
+#endif
+#ifndef NO_FARBFELD_LOADER
+    [IMG_LOADER_FARBFELD] = CREATE_LOADER(farbfeld),
 #endif
 #ifndef NO_PPM_ASCII_LOADER
     [IMG_LOADER_PPM_ASCII] = CREATE_LOADER(ppm_ascii),
