@@ -1,19 +1,20 @@
 #ifndef MINIZ_LOADER_H
 #define MINIZ_LOADER_H
 
+#include "img_loader_helpers.h"
 #include "img_loader_private.h"
-#include <fcntl.h>
 #include <miniz.h>
-#include <stdlib.h>
-#include <string.h>
 #include <unistd.h>
 
 static size_t miniz_file_write_func(void *pOpaque, mz_uint64 file_ofs, const void *pBuf, size_t n){
-    return write(*(int*)pOpaque, pBuf, n);
+    return safe_write(*(int*)pOpaque, pBuf, n);
 }
 
 int miniz_load(ImageLoaderContext* context, int fd, ImageLoaderData* parent) {
-    FILE* file = fdopen(dup(fd), "r");
+    FILE* file = safe_dup_and_fd_open(fd);
+    if (!file) {
+        return -1;
+    }
     mz_zip_archive zip_archive = {0};
     if (!mz_zip_reader_init_cfile(&zip_archive, file, 0, 0)){
         fclose(file);

@@ -14,8 +14,11 @@ int spng_load(ImageLoaderContext* context, int fd, ImageLoaderData* data) {
 
     ctx = spng_ctx_new(0);
     if (ctx == NULL) return -1;
-
-    if (spng_set_png_file(ctx, fdopen(fd, "r"))) goto err;
+    FILE* file = safe_dup_and_fd_open(fd);
+    if (!file) {
+        return -1;
+    }
+    if (spng_set_png_file(ctx, file)) goto err;
 
     if (spng_get_ihdr(ctx, &ihdr)) goto err;
 
@@ -37,6 +40,7 @@ int spng_load(ImageLoaderContext* context, int fd, ImageLoaderData* data) {
 
 err:
     if (image != NULL) free(image);
+    fclose(file);
     spng_ctx_free(ctx);
 
     return -1;

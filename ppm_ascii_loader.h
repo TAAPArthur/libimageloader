@@ -1,6 +1,7 @@
 #ifndef PPM_LOADER_H
 #define PPM_LOADER_H
 
+#include "img_loader_helpers.h"
 #include "img_loader_private.h"
 #include <assert.h>
 #include <stdlib.h>
@@ -15,7 +16,9 @@ static int readNumber(int fd, char* buffer, int offset, int buffSize, int* dest)
 readNumberRestart:
     if (buffer[i] == 0 || i >= buffSize) {
         int ret = read(fd, buffer, buffSize);
-        if (ret == 0) {
+        if (ret == -1 && retry_on_error())
+            goto readNumberRestart;
+        if (ret == 0 || ret == -1) {
             i = buffSize;
             goto readNumberEnd;
         }
@@ -51,7 +54,7 @@ readNumberEnd:
 
 int ppm_ascii_load(ImageLoaderContext* context, int fd, ImageLoaderData* data) {
     char buffer[256] = {0};
-    int ret = read(fd, buffer, 3);
+    int ret = safe_read(fd, buffer, 3);
     const unsigned int type = buffer[1] - '0';
     if (buffer[0] != 'P' || type >=7) {
         return -1;

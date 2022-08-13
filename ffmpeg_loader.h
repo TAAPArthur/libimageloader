@@ -1,8 +1,8 @@
 #ifndef FFMPEG_LOADER_H
 #define FFMPEG_LOADER_H
 
+#include "img_loader_helpers.h"
 #include "img_loader_private.h"
-#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -33,7 +33,7 @@ static void* img_loader_read_all_data(int fd, char* buffer, int buffer_size) {
     int ret = 0;
     while (ret = read(fd, buffer + size, buffer_size - size)) {
         if (ret == -1) {
-            if (errno == EAGAIN)
+            if (retry_on_error())
                 continue;
             else {
                 perror("Read failed");

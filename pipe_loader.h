@@ -7,6 +7,7 @@
 #endif
 #endif
 
+#include "img_loader_helpers.h"
 #include "img_loader_private.h"
 #include <fcntl.h>
 #include <unistd.h>
@@ -25,6 +26,8 @@ int pipe_load(ImageLoaderContext* context, int pipeFD, ImageLoaderData* parent) 
     while (1) {
         ret = read(pipeFD, buffer, sizeof(buffer));
         if (ret == -1 || write(fd, buffer, ret) == -1) {
+            if (retry_on_error())
+                continue;
             goto close_fd;
         }
     }

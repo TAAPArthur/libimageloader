@@ -1,13 +1,14 @@
 #ifndef CURL_LOADER_H
 #define CURL_LOADER_H
 
+#include "img_loader_helpers.h"
 #include "img_loader_private.h"
 #include <curl/curl.h>
 #include <string.h>
 #include <unistd.h>
 
 static size_t write_data(void *ptr, size_t size, size_t nmemb, int*fd) {
-    return write(*fd, ptr, size * nmemb);
+    return safe_write(*fd, ptr, size * nmemb);
 }
 
 int curl_load(ImageLoaderContext* context, int _, ImageLoaderData* parent) {
