@@ -28,6 +28,9 @@ int curl_load(ImageLoaderContext* context, int _, ImageLoaderData* parent) {
     curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, write_data);
 
     int fd = image_loader_create_memory_file(parent->name, 0);
+    if (fd == -1) {
+        return fd;
+    }
     /* write the page body to this file handle */
     curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, &fd);
     /* get it! */

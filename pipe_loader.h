@@ -9,6 +9,9 @@
 
 int pipe_load(ImageLoaderContext* context, int pipeFD, ImageLoaderData* parent) {
     int fd = image_loader_create_memory_file(parent->name, 0);
+    if (fd == -1) {
+        return fd;
+    }
 
     int buf_size =  1 << 12;
     int ret;

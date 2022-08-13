@@ -28,6 +28,9 @@ int miniz_load(ImageLoaderContext* context, int fd, ImageLoaderData* parent) {
             continue;
         const char* name = strdup(file_stat.m_filename);
         int fd = image_loader_create_memory_file(name, 0);
+        if (fd == -1) {
+            return fd;
+        }
         mz_zip_reader_extract_to_callback(&zip_archive, i, miniz_file_write_func, &fd, 0);
         lseek(fd, 0, SEEK_SET);
 

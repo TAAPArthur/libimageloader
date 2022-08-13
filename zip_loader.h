@@ -28,6 +28,9 @@ int zip_load(ImageLoaderContext* context, int fd, ImageLoaderData* parent) {
         name = strdup(name);
         int size = stat.size;
         int fd = image_loader_create_memory_file(name, size);
+        if (fd == -1) {
+            return fd;
+        }
         char* buf = malloc(size);
         zip_fread(file, buf, size);
         write(fd, buf, size);
