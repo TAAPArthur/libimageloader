@@ -388,8 +388,17 @@ unsigned int image_loader_get_width(const ImageLoaderData* data){return data->im
 void* image_loader_get_data(const ImageLoaderData* data) { return data->data;}
 
 int image_loader_create_memory_file(const char* name, int size) {
-    int fd = memfd_create(name, MFD_CLOEXEC);
+    int fd;
+#ifndef HAVE_LINUX
+    char template[] = "/tmp/.tmp_img_loaderXXXXXX";
+    fd = mkstemp(template);
+    if (fd != -1) {
+        unlink(template);
+    }
+#else
+    fd = memfd_create(name, MFD_CLOEXEC);
     if (size)
         ftruncate(fd, size);
+#endif
     return fd;
 }

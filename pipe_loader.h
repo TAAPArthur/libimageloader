@@ -1,8 +1,12 @@
 #ifndef PIPE_LOADER_H
 #define PIPE_LOADER_H
+
+#ifdef HAVE_LINUX
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
 #endif
+#endif
+
 #include "img_loader_private.h"
 #include <fcntl.h>
 #include <unistd.h>
@@ -15,11 +19,21 @@ int pipe_load(ImageLoaderContext* context, int pipeFD, ImageLoaderData* parent) 
 
     int buf_size =  1 << 12;
     int ret;
+    int err = -1;
+#ifndef HAVE_LINUX
+    char buffer[255];
+    while (1) {
+        ret = read(pipeFD, buffer, sizeof(buffer));
+        if (ret == -1 || write(fd, buffer, ret) == -1) {
+            goto close_fd;
+        }
+    }
+#else
     while ((ret = splice(pipeFD, NULL, fd, NULL, buf_size, 0)))
         if (ret < 0) {
-            close(fd);
-            return ret;
+            goto close_fd;
         }
+#endif
 
     int end = lseek(fd, 0, SEEK_CUR);
     lseek(fd, 0, SEEK_SET);
@@ -36,6 +50,8 @@ int pipe_load(ImageLoaderContext* context, int pipeFD, ImageLoaderData* parent) 
         if (lseek(temp_fd, 0, SEEK_CUR) == end)
             break;
     }
+    err = 0;
+close_fd:
     close(fd);
     return 0;
 }
