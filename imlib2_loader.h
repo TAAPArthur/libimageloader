@@ -1,3 +1,6 @@
+#ifndef IMLIB2_LOADER_H
+#define IMLIB2_LOADER_H
+
 #include "img_loader_private.h"
 #include <Imlib2.h>
 #include <unistd.h>
@@ -18,3 +21,4 @@ void imlib2_close(ImageLoaderData* data) {
     imlib_context_set_image(data->image_data);
     imlib_free_image();
 }
+#endif

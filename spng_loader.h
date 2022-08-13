@@ -1,3 +1,6 @@
+#ifndef SPNG_LOADER_H
+#define SPNG_LOADER_H
+
 #include "img_loader_private.h"
 #include <spng.h>
 #include <stdlib.h>
@@ -10,18 +13,18 @@ int spng_load(ImageLoaderContext* context, int fd, ImageLoaderData* data) {
     size_t size;
 
     ctx = spng_ctx_new(0);
-    if(ctx == NULL) return -1;
+    if (ctx == NULL) return -1;
 
-    if(spng_set_png_file(ctx, fdopen(fd, "r"))) goto err;
+    if (spng_set_png_file(ctx, fdopen(fd, "r"))) goto err;
 
-    if(spng_get_ihdr(ctx, &ihdr)) goto err;
+    if (spng_get_ihdr(ctx, &ihdr)) goto err;
 
-    if(spng_decoded_image_size(ctx, SPNG_FMT_RGBA8 , &size)) goto err;
+    if (spng_decoded_image_size(ctx, SPNG_FMT_RGBA8 , &size)) goto err;
 
     image = malloc(size);
-    if(image == NULL) goto err;
+    if (image == NULL) goto err;
 
-    if(spng_decode_image(ctx, image, size, SPNG_FMT_RGBA8, 0)) goto err;
+    if (spng_decode_image(ctx, image, size, SPNG_FMT_RGBA8, 0)) goto err;
 
 
     data->data = image;
@@ -33,7 +36,7 @@ int spng_load(ImageLoaderContext* context, int fd, ImageLoaderData* data) {
     return 0;
 
 err:
-    if(image != NULL) free(image);
+    if (image != NULL) free(image);
     spng_ctx_free(ctx);
 
     return -1;
@@ -42,3 +45,4 @@ err:
 void spng_close(ImageLoaderData* data) {
     free(data->data);
 }
+#endif

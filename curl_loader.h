@@ -1,21 +1,23 @@
-#include <string.h>
-#include <unistd.h>
+#ifndef CURL_LOADER_H
+#define CURL_LOADER_H
 
 #include "img_loader_private.h"
 #include <curl/curl.h>
+#include <string.h>
+#include <unistd.h>
 
 static size_t write_data(void *ptr, size_t size, size_t nmemb, int*fd) {
     return write(*fd, ptr, size * nmemb);
 }
 
 int curl_load(ImageLoaderContext* context, int _, ImageLoaderData* parent) {
-    if(!strstr(parent->name, "://"))
+    if (!strstr(parent->name, "://"))
         return -1;
     curl_global_init(CURL_GLOBAL_ALL);
 
     /* init the curl session */
     CURL* curl_handle = curl_easy_init();
-    if(!curl_handle)
+    if (!curl_handle)
         return -1;
 
     /* set URL to get here */
@@ -29,7 +31,7 @@ int curl_load(ImageLoaderContext* context, int _, ImageLoaderData* parent) {
     /* write the page body to this file handle */
     curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, &fd);
     /* get it! */
-    if(CURLE_OK != curl_easy_perform(curl_handle)) {
+    if (CURLE_OK != curl_easy_perform(curl_handle)) {
         return -1;
     }
 
@@ -42,3 +44,4 @@ int curl_load(ImageLoaderContext* context, int _, ImageLoaderData* parent) {
     curl_global_cleanup();
     return 0;
 }
+#endif

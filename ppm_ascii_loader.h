@@ -13,9 +13,9 @@ static int readNumber(int fd, char* buffer, int offset, int buffSize, int* dest)
     int visted_num = 0;
     int currentSize = buffSize;
 readNumberRestart:
-    if(buffer[i] == 0 || i >= buffSize) {
+    if (buffer[i] == 0 || i >= buffSize) {
         int ret = read(fd, buffer, buffSize);
-        if(ret == 0) {
+        if (ret == 0) {
             i = buffSize;
             goto readNumberEnd;
         }
@@ -24,19 +24,19 @@ readNumberRestart:
         i = 0;
     }
     int end = 0;
-    while(i < buffSize && !end && i < currentSize) {
+    while (i < buffSize && !end && i < currentSize) {
         if (comment) {
-            if(buffer[i] == '\n') {
+            if (buffer[i] == '\n') {
                 comment = 0;
             }
         }
-        else if(buffer[i] >= '0' && buffer[i] <= '9') {
+        else if (buffer[i] >= '0' && buffer[i] <= '9') {
             num = num * 10 + buffer[i] - '0';
             visted_num = 1;
         }
-        else if(buffer[i] == '#') {
+        else if (buffer[i] == '#') {
             comment = 1;
-        } else if(visted_num) {
+        } else if (visted_num) {
             end = 1;
         }
         i++;
@@ -53,7 +53,7 @@ int ppm_ascii_load(ImageLoaderContext* context, int fd, ImageLoaderData* data) {
     char buffer[256] = {0};
     int ret = read(fd, buffer, 3);
     const unsigned int type = buffer[1] - '0';
-    if(buffer[0] != 'P' || type >=7) {
+    if (buffer[0] != 'P' || type >=7) {
         return -1;
     }
     if (type >= 4) {
@@ -69,25 +69,25 @@ int ppm_ascii_load(ImageLoaderContext* context, int fd, ImageLoaderData* data) {
     data->data = malloc(size);
 
     int scale = 255;
-    if(type != 4 && type != 1) {
+    if (type != 4 && type != 1) {
         offset = readNumber(fd, buffer, offset, sizeof(buffer), &scale);
         scale = 256 / (scale + 1);
     }
     int byte;
-    if(type <= 2) {
-        for(int i = 0; i < size; i+=4) {
+    if (type <= 2) {
+        for (int i = 0; i < size; i+=4) {
             offset = readNumber(fd, buffer, offset, sizeof(buffer), &byte);
-            if(type == 1) {
+            if (type == 1) {
                 byte = !byte;
             }
-            for(int n = 0; n < 3; n++) {
+            for (int n = 0; n < 3; n++) {
                 ((char*)data->data)[i + n] = byte * scale;
             }
             ((char*)data->data)[i + 3] = 0;
         }
-    } else if(type == 3) {
-        for(int i = 0; i < size; i+=4) {
-            for(int n = 2; n >= 0; n--){
+    } else if (type == 3) {
+        for (int i = 0; i < size; i+=4) {
+            for (int n = 2; n >= 0; n--){
                 offset = readNumber(fd, buffer, offset, sizeof(buffer), &byte);
                 ((char*)data->data)[i + n] = byte * scale;
             }

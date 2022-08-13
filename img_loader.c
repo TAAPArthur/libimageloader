@@ -1,4 +1,6 @@
+#ifndef _GNU_SOURCE
 #define _GNU_SOURCE
+#endif
 #include <fcntl.h>
 #include <stdlib.h>
 #include <sys/mman.h>
@@ -48,8 +50,8 @@
 #endif
 
 #define RUN_FUNC(DATA, LOADER, FUNC) do { \
-    if(getLoaderEnabled(DATA->LOADER)->FUNC)getLoaderEnabled(DATA->LOADER)->FUNC(data); \
-    } while(0)
+    if (getLoaderEnabled(DATA->LOADER)->FUNC)getLoaderEnabled(DATA->LOADER)->FUNC(data); \
+    } while (0)
 
 #define MULTI_LOADER   (1 << 0)
 #define NO_SEEK        (1 << 1)
@@ -99,7 +101,7 @@ static ImageLoader pipe_loader = CREATE_PARENT_LOADER(pipe, MULTI_LOADER | NO_SE
 
 static int image_data_get_fd(ImageLoaderData* data) {
     int fd = data->fd;
-    if(fd == -1) {
+    if (fd == -1) {
         fd = open(data->name, O_RDONLY | O_CLOEXEC);
         data->fd = fd;
     }
@@ -108,7 +110,7 @@ static int image_data_get_fd(ImageLoaderData* data) {
 
 static void image_loader_flip_red_blue(ImageLoaderData* data) {
     char* raw = data->data;
-    for(int i = 0; i < data->image_width * data->image_height *4; i+=4) {
+    for (int i = 0; i < data->image_width * data->image_height *4; i+=4) {
         char temp = raw[i];
         raw[i] = raw[i+2];
         raw[i+2] = temp;
@@ -122,11 +124,11 @@ void image_loader_set_stats(ImageLoaderData*data, long size, long mod_time) {
 }
 
 void image_loader_load_stats(ImageLoaderData*data) {
-    if(data->stats_loaded)
+    if (data->stats_loaded)
         return;
     struct stat statbuf;
     int fd = image_data_get_fd(data);
-    if(!fstat(fd, &statbuf)) {
+    if (!fstat(fd, &statbuf)) {
         image_loader_set_stats(data, statbuf.st_size, statbuf.st_mtim.tv_sec);
     }
     data->stats_loaded = 1;
@@ -166,14 +168,14 @@ void image_loader_sort(ImageLoaderContext* context, int type) {
         [IMG_SORT_SIZE] = compareSize,
     };
 
-    if(!(context->flags & IMAGE_LOADER_LOAD_STATS) && abs(type) > IMG_SORT_NAME)
-        for(int i = 0;i < context->num; i++) {
+    if (!(context->flags & IMAGE_LOADER_LOAD_STATS) && abs(type) > IMG_SORT_NAME)
+        for (int i = 0;i < context->num; i++) {
             image_loader_load_stats(context->data[i]);
         }
     qsort(context->data, context->num, sizeof(context->data[0]), sort_func[abs(type)]);
 
-    if(type < 0) {
-        for(int i = 0;i < context->num/2; i++) {
+    if (type < 0) {
+        for (int i = 0;i < context->num/2; i++) {
             void* temp = context->data[i];
             context->data[i] = context->data[context->num -1 - i];
             context->data[context->num -1 - i] = temp;
@@ -182,7 +184,7 @@ void image_loader_sort(ImageLoaderContext* context, int type) {
 }
 
 static void image_loader_remove_image_at_index(ImageLoaderContext* context, int n) {
-    for(int i = n + 1; i < context->num; i++)
+    for (int i = n + 1; i < context->num; i++)
         context->data[i - 1] = context->data[i];
     context->num--;
 }
@@ -211,17 +213,17 @@ void image_loader_close(ImageLoaderContext*context, ImageLoaderData* data) {
 
 static void image_loader_free_data(ImageLoaderContext*context, ImageLoaderData* data) {
     image_loader_close_force(context, data, 1);
-    if(data->flags & IMG_DATA_FREE_NAME)
+    if (data->flags & IMG_DATA_FREE_NAME)
         free((void*)data->name);
     free(data);
-    for(int i = context->num - 1; i >= 0; i--)
+    for (int i = context->num - 1; i >= 0; i--)
         if (context->data[i] == data)
             context->data[i] = NULL;
 }
 
 void image_loader_destroy_context(ImageLoaderContext*context) {
     IMG_LIB_LOG("Destroy context\n");
-    for(int i = context->num - 1; i >= 0; i--){
+    for (int i = context->num - 1; i >= 0; i--){
         image_loader_free_data(context, context->data[i]);
     }
     free(context->data);
@@ -232,7 +234,7 @@ static int image_loader_load_with_loader(ImageLoaderContext* context, int fd, Im
     int ret = img_loader->img_open(context, fd, data);
     if (ret == 0) {
         data->loader = img_loader;
-        if(data->flags & IMG_DATA_FLIP_RED_BLUE)
+        if (data->flags & IMG_DATA_FLIP_RED_BLUE)
             image_loader_flip_red_blue(data);
         data->loaded_id = context->counter++;
         assert(!data->data == (img_loader->flags & MULTI_LOADER));
@@ -243,34 +245,34 @@ static int image_loader_load_with_loader(ImageLoaderContext* context, int fd, Im
 static ImageLoaderData* _image_loader_load_image(ImageLoaderContext* context, ImageLoaderData*data, int multi_lib_only) {
     IMG_LIB_LOG("Loading file %s\n", data->name);
     int fd = image_data_get_fd(data);
-    if(data->loader)
+    if (data->loader)
         return image_loader_load_with_loader(context, fd, data, data->loader) == 0 ? data : NULL;
 
-    for(int i = 0; i < sizeof(img_loaders)/sizeof(img_loaders[0]); i++) {
+    for (int i = 0; i < sizeof(img_loaders)/sizeof(img_loaders[0]); i++) {
         // Skip if disabled for the context or not compiled in
         if (context->disabled_loaders & (1 << i) || !img_loaders[i].name)
             continue;
-        if(multi_lib_only && !(img_loaders[i].flags & MULTI_LOADER))
+        if (multi_lib_only && !(img_loaders[i].flags & MULTI_LOADER))
             continue;
-        if(fd == -1 && !(img_loaders[i].flags & NO_FD))
+        if (fd == -1 && !(img_loaders[i].flags & NO_FD))
             continue;
-        if(image_loader_load_with_loader(context, fd, data, &img_loaders[i]) == 0) {
+        if (image_loader_load_with_loader(context, fd, data, &img_loaders[i]) == 0) {
             IMG_LIB_LOG("Found loader %s for %s\n", img_loaders[i].name, data->name);
-            if(fd != -1)
+            if (fd != -1)
                 close(fd);
             return data;
         }
-        if(!(img_loaders[i].flags & NO_SEEK))
+        if (!(img_loaders[i].flags & NO_SEEK))
             lseek(fd, 0, SEEK_SET);
     }
-    if(fd != -1)
+    if (fd != -1)
         close(fd);
     IMG_LIB_LOG("Could not load %s\n", data->name);
     return NULL;
 }
 
 ImageLoaderData* image_loader_load_image(ImageLoaderContext* context, ImageLoaderData*data) {
-    if(data->data || _image_loader_load_image(context, data, 0)) {
+    if (data->data || _image_loader_load_image(context, data, 0)) {
         data->ref_count++;
         return data;
     }
@@ -279,21 +281,21 @@ ImageLoaderData* image_loader_load_image(ImageLoaderContext* context, ImageLoade
 
 ImageLoaderData* image_loader_open(ImageLoaderContext* context, int index, ImageLoaderData* currentImage) {
     ImageLoaderData* data = NULL;
-    if( index >= 0  && index < context->num) {
-        if(currentImage == context->data[index])
+    if ( index >= 0  && index < context->num) {
+        if (currentImage == context->data[index])
             return currentImage;
         int num = context->num;
         data = image_loader_load_image(context, context->data[index]);
         int remove = 0;
         int diff = context->num - num;
-        if((!data || !data->data) && context->flags & IMAGE_LOADER_REMOVE_INVALID ) {
+        if ((!data || !data->data) && context->flags & IMAGE_LOADER_REMOVE_INVALID ) {
             image_loader_free_data(context, context->data[index]);
             context->data[index] = NULL;
             image_loader_remove_image_at_index(context, index);
             return image_loader_open(context, index, currentImage);
         }
     }
-    if(currentImage) {
+    if (currentImage) {
         image_loader_close(context, currentImage);
     }
     return data;
@@ -301,8 +303,8 @@ ImageLoaderData* image_loader_open(ImageLoaderContext* context, int index, Image
 
 ImageLoaderData* image_loader_add_from_fd_with_flags(ImageLoaderContext* context, int fd, const char* file_name, unsigned int flags) {
     IMG_LIB_LOG("Adding file %s\n", file_name);
-    if(context->num == context->size || !context->data) {
-        if(context->data)
+    if (context->num == context->size || !context->data) {
+        if (context->data)
             context->size *= 2;
         context->data = realloc(context->data, context->size * sizeof(context->data[0]));
     }
@@ -312,10 +314,10 @@ ImageLoaderData* image_loader_add_from_fd_with_flags(ImageLoaderContext* context
     data->id = context->counter++;
     data->name = file_name;
     data->flags = flags;
-    if(context->flags & IMAGE_LOADER_LOAD_STATS)
+    if (context->flags & IMAGE_LOADER_LOAD_STATS)
         image_loader_load_stats(data);
-    if(context->flags & IMAGE_LOADER_PRE_EXPAND) {
-        if(_image_loader_load_image(context, data, 1));
+    if (context->flags & IMAGE_LOADER_PRE_EXPAND) {
+        if (_image_loader_load_image(context, data, 1));
     }
     return data;
 }
@@ -335,9 +337,9 @@ ImageLoaderData* image_loader_add_from_pipe(ImageLoaderContext* context, int fd,
 }
 
 void image_loader_remove_all_invalid_images(ImageLoaderContext* context) {
-    for(int i = image_loader_get_num(context) - 1; i >= 0; i--){
+    for (int i = image_loader_get_num(context) - 1; i >= 0; i--){
         ImageLoaderData* data = image_loader_open(context, i, NULL);
-        if((!data || !data->data) && !(context->flags & IMAGE_LOADER_REMOVE_INVALID)) {
+        if ((!data || !data->data) && !(context->flags & IMAGE_LOADER_REMOVE_INVALID)) {
             image_loader_remove_image_at_index(context, i);
             image_loader_close(context, data);
         }
@@ -349,8 +351,8 @@ ImageLoaderContext* image_loader_create_context(const char** file_names, int num
     ImageLoaderContext* context = calloc(1, sizeof(ImageLoaderContext));
     context->flags = flags;
     context->size = num ? num : 16;
-    for(int i = 0; (!num || i < num) && file_names && file_names[i]; i++) {
-        if(file_names[i][0] == '-' && !file_names[i][1])
+    for (int i = 0; (!num || i < num) && file_names && file_names[i]; i++) {
+        if (file_names[i][0] == '-' && !file_names[i][1])
             image_loader_add_from_pipe(context, STDIN_FILENO, "stdin");
         else
             image_loader_add_file(context, file_names[i]);
@@ -371,8 +373,8 @@ void image_loader_enable_loader_only_mask(ImageLoaderContext* context, unsigned 
 
 unsigned int image_loader_get_multi_loader_masks() {
     unsigned int mask = 0;
-    for(int i = 0; i < sizeof(img_loaders)/sizeof(img_loaders[0]); i++) {
-        if(img_loaders[i].flags & MULTI_LOADER) {
+    for (int i = 0; i < sizeof(img_loaders)/sizeof(img_loaders[0]); i++) {
+        if (img_loaders[i].flags & MULTI_LOADER) {
             mask |= 1 << i;
         }
     }
@@ -387,7 +389,7 @@ void* image_loader_get_data(const ImageLoaderData* data) { return data->data;}
 
 int image_loader_create_memory_file(const char* name, int size) {
     int fd = memfd_create(name, MFD_CLOEXEC);
-    if(size)
+    if (size)
         ftruncate(fd, size);
     return fd;
 }

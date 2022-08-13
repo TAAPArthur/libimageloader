@@ -20,13 +20,13 @@ static void simple_load_test(const char** args, unsigned mask) {
     if (mask) {
         image_loader_enable_loader_only_mask(c, mask | (1 << IMG_LOADER_DIR));
     }
-    for(int i = 0; i < image_loader_get_num(c); i++) {
+    for (int i = 0; i < image_loader_get_num(c); i++) {
         ImageLoaderData* current_image = image_loader_open(c, i, NULL); // Open the first image
         assert(current_image);
         const char * path = image_loader_get_name(current_image);
         assert(path);
         char* data = image_loader_get_data(current_image);
-        if(data) {
+        if (data) {
             assert(data);
             int width = image_loader_get_width(current_image);
             int height = image_loader_get_height(current_image);
@@ -47,12 +47,12 @@ static int starting_number_of_fds;
 
 static int getNumberOfFilesInDir(const char* dirname) {
     DIR* d = opendir(dirname);
-    if(!d)
+    if (!d)
         return -1;
     struct dirent * dir;
     int count = 0;
     while ((dir = readdir(d)) != NULL) {
-        if(dir->d_name[0] == '.')
+        if (dir->d_name[0] == '.')
             continue;
         count++;
     }
@@ -146,11 +146,11 @@ SCUTEST(simple_workflow_remove_invalid) {
     ImageLoaderContext* c = image_loader_create_context(TEST_IMAGE_PATH_SOME_INVALID, 0, IMAGE_LOADER_REMOVE_INVALID);
     ImageLoaderData* current_image = NULL;
     // loop through all images; don't have to worry about going out of bounds
-    for(int i = 0; i < image_loader_get_num(c); i++) {
+    for (int i = 0; i < image_loader_get_num(c); i++) {
         // close the current image and open the next;
         current_image = image_loader_open(c, i, current_image);
         // iff a valid index is passed in a non-null result will be returned because of IMAGE_LOADER_REMOVE_INVALID
-        if( i >= 0 && i < image_loader_get_num(c))
+        if ( i >= 0 && i < image_loader_get_num(c))
             assert(current_image);
         else
             assert(!current_image);
@@ -164,7 +164,7 @@ SCUTEST(simple_workflow_remove_invalid_with_helper_method) {
     int original_images = image_loader_get_num(c);
     image_loader_remove_all_invalid_images(c);
     assert(original_images != image_loader_get_num(c));
-    for(int i = 0; i < image_loader_get_num(c); i++)
+    for (int i = 0; i < image_loader_get_num(c); i++)
         assert(image_loader_open(c, i, NULL));
     image_loader_destroy_context(c); // Free all resources
 }
@@ -239,7 +239,7 @@ SCUTEST(open_zip) {
     /* The key part of this test is verifying we can close an empty multi-loader
      * without issue
      */
-    for(int i = 0; i < image_loader_get_num(default_context); i++)
+    for (int i = 0; i < image_loader_get_num(default_context); i++)
         image = image_loader_open(default_context, i, image);
 }
 #endif
@@ -274,7 +274,7 @@ SCUTEST(open_pre_expand) {
 
 SCUTEST(open_invalid) {
     default_context = image_loader_create_context(TEST_IMAGE_ALL_PATHS_INVALID, 0, IMAGE_LOADER_REMOVE_INVALID);
-    while(image_loader_get_num(default_context))
+    while (image_loader_get_num(default_context))
         image_loader_open(default_context, 0, NULL);
 }
 
@@ -283,7 +283,7 @@ SCUTEST(add_from_fd_open_close) {
     int fd = open(TEST_IMAGE_PATHS[0], O_RDONLY | O_CLOEXEC);
     // add from fd; the fd will be owned by the lib
     assert(image_loader_add_from_fd(default_context, fd, "human_name"));
-    for(int i = 0; i < 2; i++) {
+    for (int i = 0; i < 2; i++) {
         ImageLoaderData* image = image_loader_open(default_context, 0, NULL);
         assert(image);
         image_loader_close(default_context, image);
@@ -297,7 +297,7 @@ SCUTEST(sort_images) {
     // add from fd; the fd will be owned by the lib
     assert(image_loader_add_from_fd(default_context, fd, "human_name"));
     ImageLoaderData* image = NULL;
-    for(int i = 1; i < IMG_SORT_NUM; i++) {
+    for (int i = 1; i < IMG_SORT_NUM; i++) {
         image_loader_sort(default_context, i);
         image = image_loader_open(default_context, 0, image);
         const char* firstImage = image_loader_get_name(image);

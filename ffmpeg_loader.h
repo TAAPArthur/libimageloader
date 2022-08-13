@@ -1,3 +1,6 @@
+#ifndef FFMPEG_LOADER_H
+#define FFMPEG_LOADER_H
+
 #include "img_loader_private.h"
 #include <errno.h>
 #include <stdio.h>
@@ -8,7 +11,7 @@
 
 static int img_loader_spawn(char* cmd[], int fd_in, int fd_out) {
     int pid = fork();
-    if(pid == 0) {
+    if (pid == 0) {
         dup2(fd_out, STDOUT_FILENO);
         dup2(fd_in, STDIN_FILENO);
         close(fd_out);
@@ -28,9 +31,9 @@ static void* img_loader_read_all_data(int fd, char* buffer, int buffer_size) {
         buffer = malloc(buffer_size);
     }
     int ret = 0;
-    while(ret = read(fd, buffer + size, buffer_size - size)) {
-        if(ret == -1) {
-            if(errno == EAGAIN)
+    while (ret = read(fd, buffer + size, buffer_size - size)) {
+        if (ret == -1) {
+            if (errno == EAGAIN)
                 continue;
             else {
                 perror("Read failed");
@@ -41,7 +44,7 @@ static void* img_loader_read_all_data(int fd, char* buffer, int buffer_size) {
         }
         size += ret;
         if (allocate_memory) {
-            if(size == buffer_size) {
+            if (size == buffer_size) {
                 buffer_size *= 2;
             }
             buffer = realloc(buffer, buffer_size);
@@ -57,12 +60,12 @@ static int img_loader_wait(int pid) {
 
 static char* img_loader_spawn_and_wait(int fd, char* cmd[], char* buffer, int buffSize, int* exitStatus) {
     int fds[2] = {0};
-    if(pipe(fds) == -1) {
+    if (pipe(fds) == -1) {
         perror("Failed to create pipe");
         return NULL;
     }
     int pid = img_loader_spawn(cmd, fd, fds[1]);
-    if(pid < 0) {
+    if (pid < 0) {
         close(fds[0]);
         close(fds[1]);
         return NULL;
@@ -79,18 +82,18 @@ static int ffmpeg_get_size(int fd, int * width, int * height) {
     char size_buffer[16] = {0};
     int errCode;
     char * buffer = img_loader_spawn_and_wait(fd, fprobe_cmd, size_buffer, sizeof(size_buffer), &errCode);
-    if(buffer) {
-        if(errCode == 127) {
+    if (buffer) {
+        if (errCode == 127) {
             *width = 1024;
             *height = 720;
             return 0;
-        } else if(errCode == 0) {
+        } else if (errCode == 0) {
             *width = atoi(buffer);
-            if(strchr(buffer, 'x') == NULL) {
+            if (strchr(buffer, 'x') == NULL) {
                 return -1;
             }
             *height = atoi(strchr(buffer, 'x') + 1);
-            if(*width == 0 || *height == 0) {
+            if (*width == 0 || *height == 0) {
                 return -1;
             }
         }
@@ -114,3 +117,4 @@ int ffmpeg_load(ImageLoaderContext* context, int fd, ImageLoaderData* data) {
 void ffmpeg_close(ImageLoaderData* data) {
     free(data->data);
 }
+#endif

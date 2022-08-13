@@ -1,3 +1,6 @@
+#ifndef MINIZ_LOADER_H
+#define MINIZ_LOADER_H
+
 #include "img_loader_private.h"
 #include <fcntl.h>
 #include <miniz.h>
@@ -12,7 +15,7 @@ static size_t miniz_file_write_func(void *pOpaque, mz_uint64 file_ofs, const voi
 int miniz_load(ImageLoaderContext* context, int fd, ImageLoaderData* parent) {
     FILE* file = fdopen(dup(fd), "r");
     mz_zip_archive zip_archive = {0};
-    if(!mz_zip_reader_init_cfile(&zip_archive, file, 0, 0)){
+    if (!mz_zip_reader_init_cfile(&zip_archive, file, 0, 0)){
         fclose(file);
         return -1;
     }
@@ -21,7 +24,7 @@ int miniz_load(ImageLoaderContext* context, int fd, ImageLoaderData* parent) {
         mz_zip_archive_file_stat file_stat;
         if (!mz_zip_reader_file_stat(&zip_archive, i, &file_stat)) {
         }
-        if(mz_zip_reader_is_file_a_directory(&zip_archive, i))
+        if (mz_zip_reader_is_file_a_directory(&zip_archive, i))
             continue;
         const char* name = strdup(file_stat.m_filename);
         int fd = image_loader_create_memory_file(name, 0);
@@ -35,3 +38,4 @@ int miniz_load(ImageLoaderContext* context, int fd, ImageLoaderData* parent) {
     fclose(file);
     return 0;
 }
+#endif

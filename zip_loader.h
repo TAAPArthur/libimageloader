@@ -1,3 +1,6 @@
+#ifndef ZIP_LOADER_H
+#define ZIP_LOADER_H
+
 #include "img_loader_private.h"
 #include <stdlib.h>
 #include <string.h>
@@ -8,17 +11,17 @@ int zip_load(ImageLoaderContext* context, int fd, ImageLoaderData* parent) {
     int errorp;
 
     zip_t* zip = zip_fdopen(fd, 0, &errorp);
-    if(!zip)
+    if (!zip)
         return -1;
 
     int n = zip_get_num_entries(zip, 0);
-    if(!n)
+    if (!n)
         return 0;
     image_loader_load_stats(parent);
     struct zip_stat stat;
     zip_stat_init(&stat);
 
-    for(int i=0; i < n; i++) {
+    for (int i=0; i < n; i++) {
         zip_file_t* file = zip_fopen_index(zip, i, 0);
         zip_stat_index(zip, i, 0, &stat);
         const char* name = stat.valid & ZIP_STAT_NAME ? stat.name : parent->name;
@@ -38,3 +41,4 @@ int zip_load(ImageLoaderContext* context, int fd, ImageLoaderData* parent) {
     zip_discard(zip);
     return 0;
 }
+#endif
