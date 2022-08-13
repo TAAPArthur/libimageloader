@@ -41,6 +41,10 @@
 #include "archive_loader.h"
 #endif
 
+#ifndef NO_MUPDF_LOADER
+#include "mupdf_loader.h"
+#endif
+
 #ifndef NO_ZIP_LOADER
 #include "zip_loader.h"
 #endif
@@ -91,6 +95,9 @@ static const ImageLoader img_loaders[] = {
 #ifndef NO_PPM_ASCII_LOADER
     [IMG_LOADER_PPM_ASCII] = CREATE_LOADER(ppm_ascii),
 #endif
+#ifndef NO_MUPDF_LOADER
+    [IMG_LOADER_MUPDF] = CREATE_PARENT_LOADER(mupdf, MULTI_LOADER),
+#endif
 #ifndef NO_MINIZ_LOADER
     [IMG_LOADER_MINIZ] = CREATE_PARENT_LOADER(miniz, MULTI_LOADER),
 #endif
@@ -130,6 +137,44 @@ static void image_loader_flip_red_blue(ImageLoaderData* data) {
         raw[i+2] = temp;
     }
 }
+
+void convert_to_rgba(char* dest, const char* src, int width, int height, int stride, int channels, int flags) {
+    int destOffset = 0;
+    for(int h = 0; h < height; h++) {
+        for(int w = 0; w < width; w++) {
+            switch(channels) {
+                case 1:
+                     for(int i = 0; i < 4; i++)
+                         dest[destOffset + i] = src[h * stride + w * channels];
+                     break;
+                case 2:
+                case 3:
+                case 4:
+                     for(int i = 0; i < channels; i++)
+                         dest[destOffset + i] = src[h * stride + w * channels + i];
+                     for(int i = channels; i < 4; i++)
+                         dest[destOffset + i] = 255;
+
+                     if (flags & IMG_DATA_FLIP_RED_BLUE) {
+                         char red = dest[destOffset + 0];
+                         dest[destOffset + 0] = dest[destOffset + 2];
+                         dest[destOffset + 2] = red;
+                     }
+                     break;
+            }
+            destOffset+=4;
+        }
+    }
+}
+
+void image_loader_load_raw_image(ImageLoaderData*data, const char* src, int width, int height, int stride, int channels) {
+        data->image_height = height;
+        data->image_width = width;
+        int size = data->image_height * data->image_width * 4;
+        assert(!data->data);
+        data->data = malloc(size);
+        convert_to_rgba(data->data, src, data->image_width, data->image_height, stride, channels, data->flags);
+};
 
 void image_loader_set_stats(ImageLoaderData*data, long size, long mod_time) {
     data->size = size;
@@ -206,14 +251,18 @@ static void image_loader_remove_image_at_index(ImageLoaderContext* context, int 
 
 void image_loader_close_force(ImageLoaderContext*context, ImageLoaderData* data, int force) {
     if (!data || !data->data) {
-        if(data && data->fd != -1) {
+        if (data && data->fd != -1) {
             close(data->fd);
             data->fd = -1;
         }
         return;
     }
     if (--data->ref_count == 0 && (!(data->flags & IMG_DATA_KEEP_OPEN) || context->flags & IMAGE_LOADER_FORCE_CLOSE)|| force) {
-        data->loader->img_close(data);
+        if (data->loader) {
+            data->loader->img_close(data);
+        } else {
+            free(data->data);
+        }
         data->image_data = NULL;
         data->data = NULL;
         close(data->fd);
@@ -336,8 +385,12 @@ ImageLoaderData* image_loader_add_from_fd_with_flags(ImageLoaderContext* context
     return data;
 }
 
+ImageLoaderData* image_loader_add_file_with_flags(ImageLoaderContext* context, const char* file_name, unsigned int flags) {
+    return image_loader_add_from_fd_with_flags(context, -1, file_name, flags);
+}
+
 ImageLoaderData* image_loader_add_file(ImageLoaderContext* context, const char* file_name) {
-    return image_loader_add_from_fd_with_flags(context, -1, file_name, 0);
+    return image_loader_add_file_with_flags(context, file_name, 0);
 }
 
 ImageLoaderData* image_loader_add_from_fd(ImageLoaderContext* context, int fd, const char* name) {

@@ -131,6 +131,13 @@ SCUTEST(simple_workflow_ffmpeg) {
 }
 #endif
 
+#ifndef NO_MUPDF_LOADER
+SCUTEST(simple_workflow_mupdf) {
+    const char* path[] = {TEST_IMAGE_PREFIX "pdf/", NULL};
+    simple_load_test(path, image_loader_get_nonmulti_loader_masks() | (1 << IMG_LOADER_MUPDF));
+}
+#endif
+
 #ifndef NO_MINIZ_LOADER
 SCUTEST(simple_workflow_miniz) {
     const char* path[] = {TEST_IMAGE_PREFIX "zip/test_image.zip", NULL};

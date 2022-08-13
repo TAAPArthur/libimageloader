@@ -34,6 +34,7 @@ image_loader_destroy_context(c); // Free all resources
 * [libcurl](https://curl.se/) (remote files)
 * [libzip](https://libzip.org/)  (compressed formats)
 * [miniz](https://github.com/richgel999/miniz) (compressed formats)
+* [mupdf](https://mupdf.com/) (xhtml, pdf, epub etc)
 * [spng](https://libspng.org/) (png)
 * [stb_image](https://github.com/nothings/stb/blob/master/stb_image.h) (many image formats)
 

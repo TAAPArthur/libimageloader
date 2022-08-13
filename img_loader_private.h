@@ -48,4 +48,6 @@ ImageLoaderData* image_loader_load_image(ImageLoaderContext* context, ImageLoade
 void image_loader_load_stats(ImageLoaderData*data);
 
 int image_loader_create_memory_file(const char* name, int size);
+
+void image_loader_load_raw_image(ImageLoaderData* data, const char* src, int width, int height, int stride, int channels);
 #endif

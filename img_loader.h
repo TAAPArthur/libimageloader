@@ -52,6 +52,7 @@ ImageLoaderData* image_loader_add_file(ImageLoaderContext* context, const char* 
  */
 ImageLoaderData* image_loader_add_from_fd(ImageLoaderContext* context, int fd, const char* name);
 
+ImageLoaderData* image_loader_add_file_with_flags(ImageLoaderContext* context, const char* file_name, unsigned int flags);
 ImageLoaderData* image_loader_add_from_fd_with_flags(ImageLoaderContext* context, int fd, const char* file_name, unsigned int flags);
 
 /**
@@ -108,6 +109,7 @@ typedef enum {
     IMG_LOADER_STB_IMAGE,
     IMG_LOADER_FARBFELD,
     IMG_LOADER_PPM_ASCII,
+    IMG_LOADER_MUPDF,
     IMG_LOADER_MINIZ,
     IMG_LOADER_ARCHIVE,
     IMG_LOADER_ZIP,
