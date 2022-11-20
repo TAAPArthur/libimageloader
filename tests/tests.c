@@ -69,6 +69,26 @@ void teardown_fd_check(){
 
 SCUTEST_SET_FIXTURE(setup_fd_check, teardown_fd_check);
 
+#ifndef NO_PIPE_LOADER
+SCUTEST(simple_workflow_pipe_loader) {
+    int fds[2];
+    pipe(fds);
+    if(!fork()) {
+        dup2(fds[1], STDOUT_FILENO);
+        close(fds[0]);
+        close(fds[1]);
+        execlp("cat", "cat", TEST_IMAGE_PREFIX "png/test_image.png", NULL);
+        exit(1);
+    }
+    dup2(fds[0], STDIN_FILENO);
+    close(fds[0]);
+    close(fds[1]);
+    const char* path[] = {"-", NULL};
+    simple_load_test(path, image_loader_get_nonmulti_loader_masks());
+    wait(NULL);
+}
+#endif
+
 #ifndef NO_PPM_ASCII_LOADER
 SCUTEST(simple_workflow_ppm_ascii) {
     const char* path[] = {TEST_IMAGE_PREFIX "ppm/", NULL};

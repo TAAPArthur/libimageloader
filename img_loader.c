@@ -367,7 +367,7 @@ ImageLoaderContext* image_loader_create_context(const char** file_names, int num
     context->size = num ? num : 16;
     for (int i = 0; (!num || i < num) && file_names && file_names[i]; i++) {
         if (file_names[i][0] == '-' && !file_names[i][1])
-            image_loader_add_from_pipe(context, STDIN_FILENO, "stdin");
+            image_loader_add_from_pipe(context, dup(STDIN_FILENO), "stdin");
         else
             image_loader_add_file(context, file_names[i]);
     }
