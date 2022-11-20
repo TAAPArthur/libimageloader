@@ -14,12 +14,12 @@ const char* TEST_IMAGE_PATHS_ZIP[] = {TEST_IMAGE_PREFIX "/zip/test_image.zip", T
 const char* TEST_IMAGE_ALL_PATHS_INVALID[] = {"tests/invalid_image.png", "another_bad_image.bad", NULL};
 
 static void simple_load_test(const char** args, unsigned mask) {
-    // Load all files passed TEST_IMAGE_PATHS; TEST_IMAGE_PATHS is in the same
-    // format as argv from main()
+    // Load all files in args
     ImageLoaderContext* c = image_loader_create_context(args, 0, 0);
     if (mask) {
         image_loader_enable_loader_only_mask(c, mask | (1 << IMG_LOADER_DIR));
     }
+    int numRealImages = 0;
     for (int i = 0; i < image_loader_get_num(c); i++) {
         ImageLoaderData* current_image = image_loader_open(c, i, NULL); // Open the first image
         assert(current_image);
@@ -27,6 +27,7 @@ static void simple_load_test(const char** args, unsigned mask) {
         assert(path);
         char* data = image_loader_get_data(current_image);
         if (data) {
+            numRealImages++;
             assert(data);
             int width = image_loader_get_width(current_image);
             int height = image_loader_get_height(current_image);
@@ -39,9 +40,8 @@ static void simple_load_test(const char** args, unsigned mask) {
         // Do stuff like draw the image
     }
     image_loader_destroy_context(c); // Free all resources
+    assert(numRealImages);
 }
-
-
 
 static int starting_number_of_fds;
 
@@ -68,7 +68,6 @@ void teardown_fd_check(){
 }
 
 SCUTEST_SET_FIXTURE(setup_fd_check, teardown_fd_check);
-#ifndef NO_DIR_LOADER
 
 #ifndef NO_PPM_ASCII_LOADER
 SCUTEST(simple_workflow_ppm_ascii) {
@@ -110,8 +109,6 @@ SCUTEST(simple_workflow_ffmpeg) {
     const char* path[] = {TEST_IMAGE_PREFIX "mp4/", NULL};
     simple_load_test(path, 0);
 }
-#endif
-
 #endif
 
 #ifndef NO_MINIZ_LOADER
