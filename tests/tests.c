@@ -121,6 +121,15 @@ SCUTEST(simple_workflow_miniz) {
 }
 #endif
 
+#ifndef NO_ARCHIVE_LOADER
+
+SCUTEST(simple_workflow_archiver) {
+    const char* path[] = {TEST_IMAGE_PREFIX "archive/", NULL};
+    simple_load_test(path, image_loader_get_nonmulti_loader_masks() | (1 << IMG_LOADER_ARCHIVE));
+}
+
+#endif
+
 #ifndef NO_ZIP_LOADER
 SCUTEST(simple_workflow_zip) {
     const char* path[] = {TEST_IMAGE_PREFIX "zip/test_image.zip", NULL};

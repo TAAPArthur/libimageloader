@@ -37,6 +37,10 @@
 #include "miniz_loader.h"
 #endif
 
+#ifndef NO_ARCHIVE_LOADER
+#include "archive_loader.h"
+#endif
+
 #ifndef NO_ZIP_LOADER
 #include "zip_loader.h"
 #endif
@@ -89,6 +93,9 @@ static const ImageLoader img_loaders[] = {
 #endif
 #ifndef NO_MINIZ_LOADER
     [IMG_LOADER_MINIZ] = CREATE_PARENT_LOADER(miniz, MULTI_LOADER),
+#endif
+#ifndef NO_ARCHIVE_LOADER
+    [IMG_LOADER_ARCHIVE] = CREATE_PARENT_LOADER(archive, MULTI_LOADER),
 #endif
 #ifndef NO_ZIP_LOADER
     [IMG_LOADER_ZIP] = CREATE_PARENT_LOADER(zip, MULTI_LOADER),
