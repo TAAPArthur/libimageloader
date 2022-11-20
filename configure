@@ -18,12 +18,27 @@ for lib in archive Imlib2 spng zip curl stb/stb_image.h miniz; do
         echo "HAVE_$LIB ?= $GLOBAL_DEFAULT"
     else
         if [ "${lib%.h}.h" = "${lib}" ] ; then
-            ! printf "#include <%s>\nint main(){}" "$lib" | ${CC:-cc} -o /dev/null -x c - 2>/dev/null
+            ! printf "#include <%s>\nvoid main(){}" "$lib" | ${CC:-cc} -o /dev/null -x c - 2>/dev/null
         else
-            ! echo "int main(){}" | ${CC:-cc} "-l$lib" -o /dev/null -x c - 2>/dev/null
+            ! echo "void main(){}" | ${CC:-cc} "-l$lib" -o /dev/null -x c - 2>/dev/null
         fi
         echo "HAVE_$LIB ?= $?"
     fi
     echo "CPPFLAGS += \$(CPPFLAGS_${LIB}_\$(HAVE_$LIB))"
     echo "LDFLAGS += \$(LDFLAGS_${LIB}_\$(HAVE_$LIB))"
 done
+
+while read -r func header example; do
+    FUNC=$(echo "$func" | sed 's|\w*/\(\w*\).h|\1|' | tr '[:lower:]' '[:upper:]' );
+    echo "CPPFLAGS_${FUNC}_0 = -DNO_${FUNC}"
+    if [ -n "$GLOBAL_DEFAULT" ]; then
+        echo "HAVE_$LIB ?= $GLOBAL_DEFAULT"
+    else
+        ! printf "#include <%s>\nvoid main(){%s}" "$header" "$example" | ${CC:-cc} -o /dev/null -x c - 2>/dev/null
+        echo "HAVE_$FUNC ?= $?"
+    fi
+    echo "CPPFLAGS += \$(CPPFLAGS_${FUNC}_\$(HAVE_$FUNC))"
+
+done <<EOF
+memfd_create sys/mman.h memfd_create("test", 0);
+EOF

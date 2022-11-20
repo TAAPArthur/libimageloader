@@ -18,14 +18,16 @@ install: $(LIB)
 	install -Dt $(DESTDIR)$(PREFIX)/lib $(LIB)
 	install -Dt $(DESTDIR)$(PREFIX)/include/$(PRG) $(PRG).h
 
-examples/example: examples/example.o $(PRG).o
-	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+examples/example: examples/example.c $(PRG).c
+	$(CC) $(CFLAGS) $(CPPFLAGS) -o $@ $^ $(LDFLAGS)
 
-tests/test: CFLAGS += -g -DVERBOSE -UHAVE_LINUX
-tests/test: tests/tests.o $(PRG).o
-	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+tests/test: CFLAGS += -g
+tests/test: CPPFLAGS += -DVERBOSE -DDEBUG
+tests/test: tests/tests.c $(PRG).c
+	$(CC) $(CFLAGS) $(CPPFLAGS) -o $@ $^ $(LDFLAGS)
 
-tests/posix_test: CFLAGS += -g -DVERBOSE -DHAVE_LINUX
+tests/posix_test: CFLAGS += -g
+tests/posix_test: CPPFLAGS += -DVERBOSE -UHAVE_LINUX -DDEBUG
 tests/posix_test: tests/tests.c $(PRG).c
 	$(CC) $(CFLAGS) $(CPPFLAGS) -o $@ $^ $(LDFLAGS)
 
