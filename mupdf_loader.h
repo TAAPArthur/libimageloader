@@ -3,9 +3,7 @@
 
 #include "img_loader_helpers.h"
 #include "img_loader_private.h"
-#define NDEBUG
 #include <mupdf/fitz.h>
-#undef NDEBUG
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
