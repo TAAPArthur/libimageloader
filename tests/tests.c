@@ -1,6 +1,7 @@
 #define SCUTEST_IMPLEMENTATION
 #define SCUTEST_DEFINE_MAIN
 #include "../img_loader.h"
+#include "../img_loader_helpers.h"
 #include <assert.h>
 #include <dirent.h>
 #include <fcntl.h>
@@ -15,8 +16,9 @@ const char* TEST_IMAGE_ALL_PATHS_INVALID[] = {"tests/invalid_image.png", "anothe
 
 static void load_test(ImageLoaderContext* c) {
     int numRealImages = 0;
+    ImageLoaderData* current_image = NULL;
     for (int i = 0; i < image_loader_get_num(c); i++) {
-        ImageLoaderData* current_image = image_loader_open(c, i, NULL); // Open the first image
+        current_image = image_loader_open(c, i, current_image); // Open the first image
         assert(current_image);
         const char * path = image_loader_get_name(current_image);
         assert(path);
@@ -34,6 +36,7 @@ static void load_test(ImageLoaderContext* c) {
         }
         // Do stuff like draw the image
     }
+    image_loader_close(c, current_image);
     assert(numRealImages);
 }
 
@@ -68,30 +71,11 @@ void setup_fd_check(){
 }
 
 void teardown_fd_check(){
+    printf("Expected %d vs %d\n", starting_number_of_fds, getNumberOfFilesInDir("/proc/self/fd"));
     assert(starting_number_of_fds == getNumberOfFilesInDir("/proc/self/fd"));
 }
 
 SCUTEST_SET_FIXTURE(setup_fd_check, teardown_fd_check);
-
-#ifndef NO_PIPE_LOADER
-SCUTEST(simple_workflow_pipe_loader) {
-    int fds[2];
-    pipe(fds);
-    if(!fork()) {
-        dup2(fds[1], STDOUT_FILENO);
-        close(fds[0]);
-        close(fds[1]);
-        execlp("cat", "cat", TEST_IMAGE_PREFIX "png/test_image.png", NULL);
-        exit(1);
-    }
-    dup2(fds[0], STDIN_FILENO);
-    close(fds[0]);
-    close(fds[1]);
-    const char* path[] = {"-", NULL};
-    simple_load_test(path, image_loader_get_nonmulti_loader_masks());
-    wait(NULL);
-}
-#endif
 
 #ifndef NO_PPM_ASCII_LOADER
 SCUTEST(simple_workflow_ppm_ascii) {
@@ -131,14 +115,14 @@ SCUTEST(simple_workflow_imlib2) {
 #ifndef NO_FFMPEG_LOADER
 SCUTEST(simple_workflow_ffmpeg) {
     const char* path[] = {TEST_IMAGE_PREFIX "mp4/", NULL};
-    simple_load_test(path, 0);
+    simple_load_test(path, 1 << IMG_LOADER_FFMPEG);
 }
 #endif
 
 #ifndef NO_MUPDF_LOADER
 SCUTEST(simple_workflow_mupdf) {
     const char* path[] = {TEST_IMAGE_PREFIX "pdf/", NULL};
-    simple_load_test(path, image_loader_get_nonmulti_loader_masks() | (1 << IMG_LOADER_MUPDF));
+    simple_load_test(path, 1 << IMG_LOADER_MUPDF);
 }
 #endif
 
@@ -150,12 +134,10 @@ SCUTEST(simple_workflow_miniz) {
 #endif
 
 #ifndef NO_ARCHIVE_LOADER
-
 SCUTEST(simple_workflow_archiver) {
     const char* path[] = {TEST_IMAGE_PREFIX "archive/", NULL};
     simple_load_test(path, image_loader_get_nonmulti_loader_masks() | (1 << IMG_LOADER_ARCHIVE));
 }
-
 #endif
 
 #ifndef NO_ZIP_LOADER
@@ -174,6 +156,32 @@ SCUTEST(simple_workflow_curl) {
     strncat(buffer, "/" TEST_IMAGE_PREFIX "png/test_image.png", sizeof(buffer) - pwdLen);
     const char* path[] = {buffer, NULL};
     simple_load_test(path, image_loader_get_nonmulti_loader_masks() | (1 << IMG_LOADER_CURL));
+}
+#endif
+
+#ifndef NO_PIPE_LOADER
+SCUTEST(simple_workflow_pipe_loader) {
+    int fds[2];
+    pipe(fds);
+    if(!fork()) {
+        close(fds[0]);
+        int fileFd = open(TEST_IMAGE_PREFIX "png/test_image.png", O_RDONLY | O_CLOEXEC);
+        char buffer[255];
+        int ret;
+        do {
+            ret = safe_read(fileFd, buffer, sizeof(buffer));
+            assert(ret != -1);
+            safe_write(fds[1], buffer, ret);
+        } while(ret);
+        close(fds[1]);
+        exit(0);
+    }
+    dup2(fds[0], STDIN_FILENO);
+    close(fds[0]);
+    close(fds[1]);
+    const char* path[] = {"-", NULL};
+    simple_load_test(path, image_loader_get_nonmulti_loader_masks());
+    while(wait(NULL) != -1);
 }
 #endif
 
@@ -234,11 +242,14 @@ SCUTEST(create_empty_context) {
 static ImageLoaderContext* default_context;
 
 void create_default_context(){
+    setup_fd_check();
     default_context = image_loader_create_context(TEST_IMAGE_PATHS, 0, 0); // Load all files passed from stdin
 }
 
 void destroy_default_context(){
+    assert(default_context);
     image_loader_destroy_context(default_context);
+    teardown_fd_check();
 }
 
 SCUTEST_SET_FIXTURE(create_default_context, destroy_default_context);
@@ -269,7 +280,7 @@ SCUTEST(close_reopen) {
     assert(image_loader_open(default_context, 0, current_image));
 }
 
-SCUTEST_SET_FIXTURE(NULL, destroy_default_context);
+SCUTEST_SET_FIXTURE(setup_fd_check, destroy_default_context);
 #if ! defined NO_MINIZ_LOADER || ! defined NO_ZIP_LOADER
 
 SCUTEST(open_zip_normal) {
