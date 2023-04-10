@@ -11,6 +11,7 @@
 const char* TEST_IMAGE_PATHS[] = {TEST_IMAGE_PREFIX "/png/test_image.png", TEST_IMAGE_PREFIX "/png/test_image.png", NULL};
 const char* TEST_IMAGE_PATH_SOME_INVALID[] = {TEST_IMAGE_PREFIX "/png/test_image.png", "tests/invalid_image.png", ".", NULL};
 const char* TEST_IMAGE_PATHS_ZIP[] = {TEST_IMAGE_PREFIX "/zip/test_image.zip", TEST_IMAGE_PREFIX "/zip", TEST_IMAGE_PREFIX "test_image.zip", NULL};
+const char* TEST_IMAGE_PATHS_MULTI[] = {TEST_IMAGE_PREFIX, NULL};
 
 const char* TEST_IMAGE_ALL_PATHS_INVALID[] = {"tests/invalid_image.png", "another_bad_image.bad", NULL};
 
@@ -193,7 +194,6 @@ SCUTEST(simple_workflow) {
     simple_load_test(path, 0);
 }
 
-
 SCUTEST(simple_workflow_remove_invalid) {
     ImageLoaderContext* c = image_loader_create_context(TEST_IMAGE_PATH_SOME_INVALID, 0, IMAGE_LOADER_REMOVE_INVALID);
     ImageLoaderData* current_image = NULL;
@@ -371,4 +371,11 @@ SCUTEST(sort_images, .iter=IMG_SORT_NUM * 2 - 1) {
     assert(strcmp(firstImageName, image_loader_get_name(image)) == 0);
     image = image_loader_open(default_context, 0, image);
     assert(strcmp(lastImageName, image_loader_get_name(image)) == 0);
+}
+
+SCUTEST(pre_load_stats) {
+    default_context = image_loader_create_context(TEST_IMAGE_PATHS_MULTI, 0, IMAGE_LOADER_LOAD_STATS);
+    int i = _i - IMG_SORT_NUM + 1;
+    load_test(default_context);
+    assert(image_loader_get_num(default_context) > 2);
 }

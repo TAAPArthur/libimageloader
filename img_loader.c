@@ -122,11 +122,12 @@ static const ImageLoader img_loaders[] = {
 static ImageLoader pipe_loader = CREATE_PARENT_LOADER(pipe, MULTI_LOADER | NO_SEEK);
 #endif
 
-static int image_data_get_fd(ImageLoaderData* data) {
+static int image_data_get_fd(ImageLoaderData* data, int* just_opened) {
     int fd = data->fd;
+    *just_opened = 0;
     if (fd == -1) {
         fd = open(data->name, O_RDONLY | O_CLOEXEC);
-        data->fd = fd;
+        *just_opened = 1;
     }
     return fd;
 }
@@ -188,10 +189,13 @@ void image_loader_load_stats(ImageLoaderData*data) {
     if (data->stats_loaded)
         return;
     struct stat statbuf;
-    int fd = image_data_get_fd(data);
+    int just_opened;
+    int fd = image_data_get_fd(data, &just_opened);
     if (!fstat(fd, &statbuf)) {
         image_loader_set_stats(data, statbuf.st_size, statbuf.st_mtim.tv_sec);
     }
+    if (just_opened)
+        close(fd);
     data->stats_loaded = 1;
 }
 
@@ -308,7 +312,8 @@ static int image_loader_load_with_loader(ImageLoaderContext* context, int fd, Im
 
 static ImageLoaderData* _image_loader_load_image(ImageLoaderContext* context, ImageLoaderData*data, int multi_lib_only) {
     IMG_LIB_LOG("Loading file %s\n", data->name);
-    int fd = image_data_get_fd(data);
+    int just_opened;
+    int fd = image_data_get_fd(data, &just_opened);
     if (data->loader)
         return image_loader_load_with_loader(context, fd, data, data->loader) == 0 ? data : NULL;
 
@@ -322,15 +327,19 @@ static ImageLoaderData* _image_loader_load_image(ImageLoaderContext* context, Im
             continue;
         if (image_loader_load_with_loader(context, fd, data, &img_loaders[i]) == 0) {
             IMG_LIB_LOG("Found loader %s for %s\n", img_loaders[i].name, data->name);
-            if (fd != -1)
+            if (fd != -1 && just_opened) {
                 close(fd);
+                data->fd = -1;
+            }
             return data;
         }
         if (!(img_loaders[i].flags & NO_SEEK))
             lseek(fd, 0, SEEK_SET);
     }
-    if (fd != -1)
+    if (fd != -1) {
         close(fd);
+        data->fd = -1;
+    }
     IMG_LIB_LOG("Could not load %s\n", data->name);
     return NULL;
 }
