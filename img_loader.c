@@ -118,7 +118,9 @@ static const ImageLoader img_loaders[] = {
 #endif
 };
 
+#ifndef NO_PIPE_LOADER
 static ImageLoader pipe_loader = CREATE_PARENT_LOADER(pipe, MULTI_LOADER | NO_SEEK);
+#endif
 
 static int image_data_get_fd(ImageLoaderData* data) {
     int fd = data->fd;
@@ -398,9 +400,13 @@ ImageLoaderData* image_loader_add_from_fd(ImageLoaderContext* context, int fd, c
 }
 
 ImageLoaderData* image_loader_add_from_pipe(ImageLoaderContext* context, int fd, const char* name) {
+#ifndef NO_PIPE_LOADER
     ImageLoaderData* data = image_loader_add_from_fd(context, fd, name);
     data->loader = &pipe_loader;
     return data;
+#else
+    return NULL;
+#endif
 }
 
 void image_loader_remove_all_invalid_images(ImageLoaderContext* context) {
