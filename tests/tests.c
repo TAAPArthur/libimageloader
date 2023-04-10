@@ -334,26 +334,30 @@ SCUTEST(add_from_fd_open_close) {
     }
 }
 
-SCUTEST(sort_images) {
-    default_context = image_loader_create_context(0, 0, 0);
+SCUTEST(sort_images, .iter=IMG_SORT_NUM * 2 - 1) {
+    default_context = image_loader_create_context(NULL, 0, 0);
     assert(image_loader_add_file(default_context, TEST_IMAGE_PATHS[0]));
     int fd = open(TEST_IMAGE_PATHS[0], O_RDONLY | O_CLOEXEC);
     // add from fd; the fd will be owned by the lib
     assert(image_loader_add_from_fd(default_context, fd, "human_name"));
     ImageLoaderData* image = NULL;
-    for (int i = 1; i < IMG_SORT_NUM; i++) {
-        image_loader_sort(default_context, i);
-        image = image_loader_open(default_context, 0, image);
-        const char* firstImage = image_loader_get_name(image);
-        image = image_loader_open(default_context, image_loader_get_num(default_context) -1, NULL);
-        const char* lastImage = image_loader_get_name(image);
-        // the negation sorts in the opposite direction
-        image_loader_sort(default_context, -i);
-        image = image_loader_open(default_context, image_loader_get_num(default_context) -1, NULL);
-        assert(strcmp(firstImage, image_loader_get_name(image)) == 0);
-        image = image_loader_open(default_context, 0, image);
-        assert(strcmp(lastImage, image_loader_get_name(image)) == 0);
+    int i = _i - IMG_SORT_NUM + 1;
+
+    srand(0);
+    image_loader_sort(default_context, i);
+    image = image_loader_open(default_context, 0, image);
+    const char* firstImageName = image_loader_get_name(image);
+    image = image_loader_open(default_context, image_loader_get_num(default_context) - 1, NULL);
+    const char* lastImageName = image_loader_get_name(image);
+    assert(strcmp(firstImageName, lastImageName));
+
+    if(!i) {
+        srand(0);
     }
-    // Shuffling; just verify this doesn't crash
-    image_loader_sort(default_context, 0);
+    // the negation sorts in the opposite direction
+    image_loader_sort(default_context, -i);
+    image = image_loader_open(default_context, image_loader_get_num(default_context) - 1, NULL);
+    assert(strcmp(firstImageName, image_loader_get_name(image)) == 0);
+    image = image_loader_open(default_context, 0, image);
+    assert(strcmp(lastImageName, image_loader_get_name(image)) == 0);
 }

@@ -195,35 +195,34 @@ void image_loader_load_stats(ImageLoaderData*data) {
     data->stats_loaded = 1;
 }
 
-static int compareName(const void* a, const void* b) {
-    return strcmp((*(ImageLoaderData**)a)->name, (*(ImageLoaderData**)b)->name);
-}
-
-static int compareMod(const void* a, const void* b) {
-    return (*(ImageLoaderData**)a)->mod_time - (*(ImageLoaderData**)b)->mod_time;
-}
-
-static int compareSize(const void* a, const void* b) {
-    return (*(ImageLoaderData**)a)->size - (*(ImageLoaderData**)b)->size;
-}
-
-static int compareId(const void* a, const void* b) {
-    return (*(ImageLoaderData**)a)->id - (*(ImageLoaderData**)b)->id;
-}
-static int compareLoadedId(const void* a, const void* b) {
-    return (*(ImageLoaderData**)a)->loaded_id - (*(ImageLoaderData**)b)->loaded_id;
-}
-
 
 static int compareRandom(const void* a, const void* b) {
     return rand() - RAND_MAX/2;
 }
 
+static int compareId(const void* a, const void* b) {
+    return (*(ImageLoaderData**)a)->id - (*(ImageLoaderData**)b)->id;
+}
+
+#define stable_cmp(VALUE) VALUE ? VALUE : compareId(a, b);
+
+static int compareName(const void* a, const void* b) {
+    return stable_cmp(strcmp((*(ImageLoaderData**)a)->name, (*(ImageLoaderData**)b)->name));
+}
+
+static int compareMod(const void* a, const void* b) {
+    return stable_cmp((*(ImageLoaderData**)a)->mod_time - (*(ImageLoaderData**)b)->mod_time);
+}
+
+static int compareSize(const void* a, const void* b) {
+    return stable_cmp((*(ImageLoaderData**)a)->size - (*(ImageLoaderData**)b)->size);
+}
+
 void image_loader_sort(ImageLoaderContext* context, int type) {
+    assert(-IMG_SORT_NUM < type && type < IMG_SORT_NUM);
     static int (*sort_func[])(const void*, const void* b) = {
         [IMG_SORT_RANDOM] = compareRandom,
         [IMG_SORT_ADDED] = compareId,
-        [IMG_SORT_LOADED] = compareLoadedId,
         [IMG_SORT_NAME] = compareName,
         [IMG_SORT_MOD] = compareMod,
         [IMG_SORT_SIZE] = compareSize,

@@ -87,8 +87,6 @@ typedef enum {
     IMG_SORT_RANDOM,
     /* Sort images by order they were initially added */
     IMG_SORT_ADDED,
-    /* Sort images by order they were initially loaded */
-    IMG_SORT_LOADED,
     /* Sort images by name */
     IMG_SORT_NAME,
     /* Sort images by modification time */
