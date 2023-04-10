@@ -13,12 +13,7 @@ const char* TEST_IMAGE_PATHS_ZIP[] = {TEST_IMAGE_PREFIX "/zip/test_image.zip", T
 
 const char* TEST_IMAGE_ALL_PATHS_INVALID[] = {"tests/invalid_image.png", "another_bad_image.bad", NULL};
 
-static void simple_load_test(const char** args, unsigned mask) {
-    // Load all files in args
-    ImageLoaderContext* c = image_loader_create_context(args, 0, 0);
-    if (mask) {
-        image_loader_enable_loader_only_mask(c, mask | (1 << IMG_LOADER_DIR));
-    }
+static void load_test(ImageLoaderContext* c) {
     int numRealImages = 0;
     for (int i = 0; i < image_loader_get_num(c); i++) {
         ImageLoaderData* current_image = image_loader_open(c, i, NULL); // Open the first image
@@ -39,8 +34,17 @@ static void simple_load_test(const char** args, unsigned mask) {
         }
         // Do stuff like draw the image
     }
-    image_loader_destroy_context(c); // Free all resources
     assert(numRealImages);
+}
+
+static void simple_load_test(const char** args, unsigned mask) {
+    // Load all files in args
+    ImageLoaderContext* c = image_loader_create_context(args, 0, 0);
+    if (mask) {
+        image_loader_enable_loader_only_mask(c, mask | (1 << IMG_LOADER_DIR));
+    }
+    load_test(c);
+    image_loader_destroy_context(c); // Free all resources
 }
 
 static int starting_number_of_fds;
