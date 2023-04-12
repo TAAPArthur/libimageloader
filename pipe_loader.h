@@ -25,12 +25,10 @@ int pipe_load(ImageLoaderContext* context, int pipeFD, ImageLoaderData* parent) 
 
     int end = lseek(fd, 0, SEEK_CUR);
     lseek(fd, 0, SEEK_SET);
-    ImageLoaderData* data;
+    ImageLoaderData* data = NULL;
     while (1) {
         int temp_fd = dup(fd);
-        data = image_loader_add_file(context, parent->name);
-        data->fd = temp_fd;
-        data->flags |= IMG_DATA_KEEP_OPEN;
+        data = image_loader_add_from_fd_with_flags_and_stats(context, temp_fd, parent->name, IMG_DATA_KEEP_OPEN, end, getCurrentTime());
         if (!image_loader_load_image(context, data)) {
             break;
         }

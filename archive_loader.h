@@ -30,8 +30,8 @@ int archive_load(ImageLoaderContext* context, int fd, ImageLoaderData* parent) {
                     break;
             };
             lseek(memory_fd, 0, SEEK_SET);
-            ImageLoaderData* data = image_loader_add_from_fd_with_flags(context, memory_fd, name, IMG_DATA_KEEP_OPEN | IMG_DATA_FREE_NAME);
-            image_loader_set_stats(data, archive_entry_size(entry), parent->mod_time);
+            image_loader_add_from_fd_with_flags_and_stats(context, memory_fd, name, IMG_DATA_KEEP_OPEN | IMG_DATA_FREE_NAME,
+               archive_entry_size(entry), parent->mod_time);
         }
     }
     archive_read_free(a);

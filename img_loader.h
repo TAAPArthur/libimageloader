@@ -54,6 +54,7 @@ ImageLoaderData* image_loader_add_from_fd(ImageLoaderContext* context, int fd, c
 
 ImageLoaderData* image_loader_add_file_with_flags(ImageLoaderContext* context, const char* file_name, unsigned int flags);
 ImageLoaderData* image_loader_add_from_fd_with_flags(ImageLoaderContext* context, int fd, const char* file_name, unsigned int flags);
+ImageLoaderData* image_loader_add_from_fd_with_flags_and_stats(ImageLoaderContext* context, int fd, const char* file_name, unsigned int flags, unsigned long size, unsigned long mod_time);
 
 /**
  * Add file denoted by fd. Note that fd must be pipe
@@ -94,7 +95,7 @@ typedef enum {
     /* Sort images by size time */
     IMG_SORT_SIZE,
     IMG_SORT_NUM,
-} IMAGE_LOADER_SORT_KEY;
+} ImageLoaderSortKey;
 
 /**
  * Sort images.

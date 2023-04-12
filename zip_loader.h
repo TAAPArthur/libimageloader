@@ -37,8 +37,8 @@ int zip_load(ImageLoaderContext* context, int fd, ImageLoaderData* parent) {
         free(buf);
         lseek(fd, 0, SEEK_SET);
 
-        ImageLoaderData* data = image_loader_add_from_fd_with_flags(context, fd, name, IMG_DATA_KEEP_OPEN | IMG_DATA_FREE_NAME);
-        image_loader_set_stats(data, size, stat.valid & ZIP_STAT_MTIME ? stat.mtime : parent->mod_time);
+        image_loader_add_from_fd_with_flags_and_stats(context, fd, name, IMG_DATA_KEEP_OPEN | IMG_DATA_FREE_NAME,
+            size, stat.valid & ZIP_STAT_MTIME ? stat.mtime : parent->mod_time);
         zip_fclose(file);
     }
     zip_discard(zip);

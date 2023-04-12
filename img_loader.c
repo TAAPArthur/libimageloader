@@ -304,7 +304,6 @@ static int image_loader_load_with_loader(ImageLoaderContext* context, int fd, Im
         data->loader = img_loader;
         if (data->flags & IMG_DATA_FLIP_RED_BLUE)
             image_loader_flip_red_blue(data);
-        data->loaded_id = context->counter++;
         assert(!data->data == (img_loader->flags & MULTI_LOADER));
     }
     return ret;
@@ -374,7 +373,7 @@ ImageLoaderData* image_loader_open(ImageLoaderContext* context, int index, Image
     return data;
 }
 
-ImageLoaderData* image_loader_add_from_fd_with_flags(ImageLoaderContext* context, int fd, const char* file_name, unsigned int flags) {
+ImageLoaderData* image_loader_add_from_fd_with_flags_and_stats(ImageLoaderContext* context, int fd, const char* file_name, unsigned int flags, unsigned long size, unsigned long mod_time) {
     IMG_LIB_LOG("Adding file %s\n", file_name);
     if (context->num == context->size || !context->data) {
         if (context->data)
@@ -387,12 +386,18 @@ ImageLoaderData* image_loader_add_from_fd_with_flags(ImageLoaderContext* context
     data->id = context->counter++;
     data->name = file_name;
     data->flags = flags;
-    if (context->flags & IMAGE_LOADER_LOAD_STATS)
+
+    if (size) {
+        image_loader_set_stats(data, size, mod_time);
+    } else if (context->flags & IMAGE_LOADER_LOAD_STATS)
         image_loader_load_stats(data);
     if (context->flags & IMAGE_LOADER_PRE_EXPAND) {
         if (_image_loader_load_image(context, data, 1));
     }
     return data;
+}
+ImageLoaderData* image_loader_add_from_fd_with_flags(ImageLoaderContext* context, int fd, const char* file_name, unsigned int flags) {
+    return image_loader_add_from_fd_with_flags_and_stats(context, fd, file_name, flags, 0, 0);
 }
 
 ImageLoaderData* image_loader_add_file_with_flags(ImageLoaderContext* context, const char* file_name, unsigned int flags) {

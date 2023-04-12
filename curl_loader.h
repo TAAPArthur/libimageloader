@@ -39,9 +39,11 @@ int curl_load(ImageLoaderContext* context, int _, ImageLoaderData* parent) {
         close(fd);
         goto end;
     }
+    int pos = lseek(fd, 0, SEEK_CUR);
     lseek(fd, 0, SEEK_SET);
 
-    ImageLoaderData* data = image_loader_add_from_fd_with_flags(context, fd, parent->name, IMG_DATA_KEEP_OPEN);
+    image_loader_add_from_fd_with_flags_and_stats(context, fd, parent->name, IMG_DATA_KEEP_OPEN,
+        pos, getCurrentTime());
     ret = 0;
 
 end:

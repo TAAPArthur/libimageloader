@@ -3,6 +3,7 @@
 
 #include <errno.h>
 #include <stdio.h>
+#include <time.h>
 #include <unistd.h>
 
 static int inline retry_on_error() {
@@ -48,6 +49,12 @@ static FILE * safe_dup_and_fd_open(int fd) {
         close(temp_fd);
     }
     return file;
+}
+
+static time_t inline getCurrentTime() {
+    struct timespec tp;
+    clock_gettime(CLOCK_REALTIME, &tp);
+    return tp.tv_sec;
 }
 
 #endif

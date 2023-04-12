@@ -35,8 +35,8 @@ int miniz_load(ImageLoaderContext* context, int fd, ImageLoaderData* parent) {
         mz_zip_reader_extract_to_callback(&zip_archive, i, miniz_file_write_func, &fd, 0);
         lseek(fd, 0, SEEK_SET);
 
-        ImageLoaderData* data = image_loader_add_from_fd_with_flags(context, fd, name, IMG_DATA_KEEP_OPEN | IMG_DATA_FREE_NAME);
-        image_loader_set_stats(data, file_stat.m_uncomp_size, parent->mod_time);
+        image_loader_add_from_fd_with_flags_and_stats(context, fd, name, IMG_DATA_KEEP_OPEN | IMG_DATA_FREE_NAME,
+            file_stat.m_uncomp_size, parent->mod_time);
     }
     mz_zip_reader_end(&zip_archive);
     fclose(file);

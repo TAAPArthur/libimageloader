@@ -61,7 +61,7 @@ int mupdf_load(ImageLoaderContext* context, int fd, ImageLoaderData* parent) {
             fz_pixmap *pix = fz_new_pixmap_from_page_number(ctx, doc, i, transform, fz_device_rgb(ctx), 0);
             char* name = malloc(bufferLen);
             snprintf(name, bufferLen, "%s Page %03d", parent->name, i);
-            ImageLoaderData* data = image_loader_add_file_with_flags(context, name, IMG_DATA_KEEP_OPEN | IMG_DATA_FREE_NAME | IMG_DATA_FLIP_RED_BLUE);
+            ImageLoaderData* data = image_loader_add_from_fd_with_flags_and_stats(context, -1, name, IMG_DATA_KEEP_OPEN | IMG_DATA_FREE_NAME | IMG_DATA_FLIP_RED_BLUE, pix->n * pix->w * pix->h, parent->mod_time);
             image_loader_load_raw_image(data, pix->samples, pix->w, pix->h, pix->stride, pix->n);
             fz_drop_pixmap(ctx, pix);
 
