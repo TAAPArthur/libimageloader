@@ -45,10 +45,6 @@
 #include "mupdf_loader.h"
 #endif
 
-#ifndef NO_ZIP_LOADER
-#include "zip_loader.h"
-#endif
-
 #ifndef NO_CURL_LOADER
 #include "curl_loader.h"
 #endif
@@ -103,9 +99,6 @@ static const ImageLoader img_loaders[] = {
 #endif
 #ifndef NO_ARCHIVE_LOADER
     [IMG_LOADER_ARCHIVE] = CREATE_PARENT_LOADER(archive, MULTI_LOADER),
-#endif
-#ifndef NO_ZIP_LOADER
-    [IMG_LOADER_ZIP] = CREATE_PARENT_LOADER(zip, MULTI_LOADER),
 #endif
 #ifndef NO_IMLIB2_LOADER
     [IMG_LOADER_IMLIB2] = CREATE_LOADER(imlib2),
