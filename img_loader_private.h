@@ -13,6 +13,7 @@
 #define IMG_DATA_KEEP_OPEN      (1 << 0)
 #define IMG_DATA_FREE_NAME      (1 << 1)
 #define IMG_DATA_FLIP_RED_BLUE  (1 << 2)
+#define IMG_DATA_FAILED_TO_LOAD (1 << 7)
 
 typedef struct ImageLoader ImageLoader;
 
