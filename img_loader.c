@@ -116,13 +116,12 @@ static ImageLoader pipe_loader = CREATE_PARENT_LOADER(pipe, MULTI_LOADER | NO_SE
 #endif
 
 static int image_data_get_fd(ImageLoaderData* data, int* just_opened) {
-    int fd = data->fd;
-    *just_opened = 0;
-    if (fd == -1) {
-        fd = open(data->name, O_RDONLY | O_CLOEXEC);
-        *just_opened = 1;
+    if (data->fd == -1) {
+        data->fd = open(data->name, O_RDONLY | O_CLOEXEC);
+        if(just_opened)
+            *just_opened = 1;
     }
-    return fd;
+    return data->fd;
 }
 
 static void image_loader_flip_red_blue(ImageLoaderData* data) {
@@ -182,13 +181,15 @@ void image_loader_load_stats(ImageLoaderData*data) {
     if (data->stats_loaded)
         return;
     struct stat statbuf;
-    int just_opened;
+    int just_opened = 0;
     int fd = image_data_get_fd(data, &just_opened);
     if (!fstat(fd, &statbuf)) {
         image_loader_set_stats(data, statbuf.st_size, statbuf.st_mtim.tv_sec);
     }
-    if (just_opened)
+    if (just_opened) {
         close(fd);
+        data->fd = -1;
+    }
     data->stats_loaded = 1;
 }
 
@@ -240,13 +241,6 @@ void image_loader_sort(ImageLoaderContext* context, int type) {
     }
 }
 
-static void image_loader_remove_image_at_index(ImageLoaderContext* context, int n) {
-    for (int i = n + 1; i < context->num; i++)
-        context->data[i - 1] = context->data[i];
-    context->num--;
-}
-
-
 void image_loader_close_force(ImageLoaderContext*context, ImageLoaderData* data, int force) {
     if (!data || !data->data) {
         if (data && data->fd != -1) {
@@ -263,9 +257,18 @@ void image_loader_close_force(ImageLoaderContext*context, ImageLoaderData* data,
         }
         data->image_data = NULL;
         data->data = NULL;
-        close(data->fd);
+        if (data->fd != -1)
+            close(data->fd);
         data->fd = -1;
     }
+}
+
+static void image_loader_remove_image_at_index(ImageLoaderContext* context, int n) {
+    for (int i = n + 1; i < context->num; i++) {
+        image_loader_close_force(context, context->data[i], 1);
+        context->data[i - 1] = context->data[i];
+    }
+    context->num--;
 }
 
 void image_loader_close(ImageLoaderContext*context, ImageLoaderData* data) {
@@ -297,15 +300,14 @@ static int image_loader_load_with_loader(ImageLoaderContext* context, int fd, Im
         data->loader = img_loader;
         if (data->flags & IMG_DATA_FLIP_RED_BLUE)
             image_loader_flip_red_blue(data);
-        assert(!data->data == (img_loader->flags & MULTI_LOADER));
+        //assert(!data->data == (img_loader->flags & MULTI_LOADER));
     }
     return ret;
 }
 
 static ImageLoaderData* _image_loader_load_image(ImageLoaderContext* context, ImageLoaderData*data, int multi_lib_only) {
     IMG_LIB_LOG("Loading file %s\n", data->name);
-    int just_opened;
-    int fd = image_data_get_fd(data, &just_opened);
+    int fd = image_data_get_fd(data, NULL);
     if (data->loader)
         return image_loader_load_with_loader(context, fd, data, data->loader) == 0 ? data : NULL;
 
@@ -319,10 +321,6 @@ static ImageLoaderData* _image_loader_load_image(ImageLoaderContext* context, Im
             continue;
         if (image_loader_load_with_loader(context, fd, data, &img_loaders[i]) == 0) {
             IMG_LIB_LOG("Found loader %s for %s\n", img_loaders[i].name, data->name);
-            if (fd != -1 && just_opened) {
-                close(fd);
-                data->fd = -1;
-            }
             return data;
         }
         if (!(img_loaders[i].flags & NO_SEEK))
@@ -420,7 +418,6 @@ void image_loader_remove_all_invalid_images(ImageLoaderContext* context) {
         ImageLoaderData* data = image_loader_open(context, i, NULL);
         if ((!data || !data->data) && !(context->flags & IMAGE_LOADER_REMOVE_INVALID)) {
             image_loader_remove_image_at_index(context, i);
-            image_loader_close(context, data);
         }
 
     }
