@@ -10,8 +10,8 @@
 #include <stb/stb_image.h>
 #include <unistd.h>
 
-int stb_image_load(ImageLoaderContext* context, int fd, ImageLoaderData* data) {
-    FILE* file = safe_dup_and_fd_open(fd);
+int stb_image_load(ImageLoaderData* data) {
+    FILE* file = safe_dup_and_fd_open(data->fd);
     if (!file) {
         return -1;
     }

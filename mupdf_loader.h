@@ -30,7 +30,7 @@ void mupdf_close(ImageLoaderData* parent) {
     free(state);
 }
 
-int mupdf_open(ImageLoaderContext* context, int fd, ImageLoaderData* parent) {
+int mupdf_open(ImageLoaderData* parent) {
     mupdf_state_t * state = calloc(1, sizeof(mupdf_state_t));
     state->ctx = fz_new_context(NULL, NULL, FZ_STORE_UNLIMITED);
     state->doc = NULL;
@@ -51,7 +51,7 @@ int mupdf_open(ImageLoaderContext* context, int fd, ImageLoaderData* parent) {
         return -1;
     }
 
-    state->file = safe_dup_and_fd_open(fd);
+    state->file = safe_dup_and_fd_open(parent->fd);
     if (!state->file) {
         mupdf_close(parent);
         return -1;
@@ -65,7 +65,6 @@ int mupdf_open(ImageLoaderContext* context, int fd, ImageLoaderData* parent) {
         mupdf_close(parent);
         return -1;
     }
-    close(fd);
 
     /* Count the number of pages. */
     state->page_count = fz_count_pages(state->ctx, state->doc);
@@ -75,7 +74,7 @@ int mupdf_open(ImageLoaderContext* context, int fd, ImageLoaderData* parent) {
     return 0;
 }
 
-ImageLoaderData* mupdf_next(ImageLoaderContext* context, ImageLoaderData* parent) {
+ImageLoaderData* mupdf_next(ImageLoaderData* parent) {
     int parentNameLen = strlen(parent->name);
     int bufferLen = parentNameLen + 16;
     mupdf_state_t * state = parent->parent_data;
@@ -86,7 +85,7 @@ ImageLoaderData* mupdf_next(ImageLoaderContext* context, ImageLoaderData* parent
             fz_pixmap *pix = fz_new_pixmap_from_page_number(state->ctx, state->doc, index, state->transform, fz_device_rgb(state->ctx), 0);
             char* name = malloc(bufferLen);
             snprintf(name, bufferLen, "%s Page %03d", parent->name, index);
-            ImageLoaderData* data = createImageLoaderData(context, -1, name, IMG_DATA_KEEP_OPEN | IMG_DATA_FREE_NAME | IMG_DATA_FLIP_RED_BLUE, pix->n * pix->w * pix->h, parent->mod_time);
+            ImageLoaderData* data = createImageLoaderData(-1, name, IMG_DATA_KEEP_OPEN | IMG_DATA_FREE_NAME | IMG_DATA_FLIP_RED_BLUE, pix->n * pix->w * pix->h, parent->mod_time);
             image_loader_load_raw_image(data, pix->samples, pix->w, pix->h, pix->stride, pix->n);
             fz_drop_pixmap(state->ctx, pix);
             return data;

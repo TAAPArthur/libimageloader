@@ -1,11 +1,12 @@
 #ifndef SPNG_LOADER_H
 #define SPNG_LOADER_H
 
+#include "img_loader_helpers.h"
 #include "img_loader_private.h"
 #include <spng.h>
 #include <stdlib.h>
 
-int spng_load(ImageLoaderContext* context, int fd, ImageLoaderData* data) {
+int spng_load(ImageLoaderData* data) {
 
     spng_ctx *ctx;
     struct spng_ihdr ihdr;
@@ -14,7 +15,7 @@ int spng_load(ImageLoaderContext* context, int fd, ImageLoaderData* data) {
 
     ctx = spng_ctx_new(0);
     if (ctx == NULL) return -1;
-    FILE* file = safe_dup_and_fd_open(fd);
+    FILE* file = safe_dup_and_fd_open(data->fd);
     if (!file) {
         return -1;
     }

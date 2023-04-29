@@ -101,16 +101,16 @@ static int ffmpeg_get_size(int fd, int * width, int * height) {
     return errCode;
 }
 
-int ffmpeg_load(ImageLoaderContext* context, int fd, ImageLoaderData* data) {
-    if (ffmpeg_get_size(fd, &data->image_width, &data->image_height)) {
+int ffmpeg_load(ImageLoaderData* data) {
+    if (ffmpeg_get_size(data->fd, &data->image_width, &data->image_height)) {
         return -1;
     }
     char size_buffer[16] = {0};
     snprintf(size_buffer, sizeof(size_buffer), "%dx%d", data->image_width, data->image_height);
     char* ffmpeg_cmd[] = {"ffmpeg", "-loglevel", "quiet", "-i",  "-", "-vcodec", "rawvideo", "-pix_fmt", "bgra", "-vframes" ,"1", "-f", "image2", "-s", size_buffer, "-", NULL};
-    lseek(fd, 0, SEEK_SET);
+    lseek(data->fd, 0, SEEK_SET);
     int exit_code;
-    data->data = img_loader_spawn_and_wait(fd, ffmpeg_cmd, NULL, 0, &exit_code);
+    data->data = img_loader_spawn_and_wait(data->fd, ffmpeg_cmd, NULL, 0, &exit_code);
     return exit_code;
 }
 

@@ -5,8 +5,8 @@
 #include <Imlib2.h>
 #include <unistd.h>
 
-int imlib2_load(ImageLoaderContext* context, int fd, ImageLoaderData* data) {
-    int fd2 = dup(fd);
+int imlib2_load(ImageLoaderData* data) {
+    int fd2 = dup(data->fd);
 	if ((data->image_data = imlib_load_image_fd(fd2, data->name)) == NULL) {
 		return -1;
     }

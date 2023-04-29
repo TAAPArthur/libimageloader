@@ -67,8 +67,8 @@
 
 typedef struct ImageLoader {
     const char* name;
-    int (*img_open)(ImageLoaderContext*, int, ImageLoaderData*);
-    ImageLoaderData* (*img_next)(ImageLoaderContext*, ImageLoaderData*);
+    int (*img_open)(ImageLoaderData*);
+    ImageLoaderData* (*img_next)(ImageLoaderData*);
     void (*img_close)(ImageLoaderData*);
     char flags;
 } ImageLoader;
@@ -306,9 +306,9 @@ void image_loader_destroy_context(ImageLoaderContext*context) {
     free(context);
 }
 
-static int image_loader_load_with_loader(ImageLoaderContext* context, int fd, ImageLoaderData*data, const ImageLoader* img_loader) {
+static int image_loader_load_with_loader(int fd, ImageLoaderData*data, const ImageLoader* img_loader) {
     assert(!data->data || !data->parent_data);
-    int ret = img_loader->img_open(context, fd, data);
+    int ret = img_loader->img_open(data);
     if (ret == 0) {
         IMG_LIB_LOG("%s loader %s for %s; Parent loader %s\n",
                 img_loader == data->loader ? "Using cached" : "Found",
@@ -330,7 +330,7 @@ static int _image_loader_load_image(ImageLoaderContext* context, ImageLoaderData
     int fd = image_data_get_fd(data, NULL);
 
     if (data->loader)
-        return image_loader_load_with_loader(context,fd, data, data->loader);
+        return image_loader_load_with_loader(fd, data, data->loader);
 
     for (int i = 0; i < sizeof(img_loaders)/sizeof(img_loaders[0]); i++) {
         // Skip if disabled for the context or not compiled in
@@ -343,7 +343,7 @@ static int _image_loader_load_image(ImageLoaderContext* context, ImageLoaderData
         if (context->flags & IMAGE_LOADER_DISABLE_RECURSIVE_DIR_LOADER && data->parent_loader == &img_loaders[IMG_LOADER_DIR] && i == IMG_LOADER_DIR)
             continue;
         assert(!data->data);
-        if (image_loader_load_with_loader(context, fd, data, &img_loaders[i]) == 0) {
+        if (image_loader_load_with_loader(fd, data, &img_loaders[i]) == 0) {
             return 0;
         }
         assert(!data->data);
@@ -374,6 +374,9 @@ static ImageLoaderData* image_loader_add_data(ImageLoaderContext* context, Image
     }
     context->data[pos] = data ;
     context->num++;
+
+    if (context->flags & IMAGE_LOADER_LOAD_STATS)
+        image_loader_load_stats(data);
     if (context->flags & IMAGE_LOADER_PRE_EXPAND) {
         int n = context->num;
         for(int i = pos; i < context->num && n == context->num; i++)
@@ -387,7 +390,7 @@ ImageLoaderData* image_loader_load_image(ImageLoaderContext* context, int index)
     if (data && (data->data || _image_loader_load_image(context, data, 0) == 0)) {
         if (data->loader && data->loader->flags & MULTI_LOADER) {
             IMG_LIB_LOG("Loading next image from multi loader %s at index %d\n", data->name, index);
-            ImageLoaderData* newImage = data->loader->img_next(context, data);
+            ImageLoaderData* newImage = data->loader->img_next(data);
             if (newImage) {
                 newImage->parent_loader = data->loader;
                 image_loader_add_data(context, newImage, index);
@@ -421,21 +424,19 @@ ImageLoaderData* image_loader_open(ImageLoaderContext* context, int index, Image
     return data;
 }
 
-ImageLoaderData* createImageLoaderData(const ImageLoaderContext* context, int fd, const char* file_name, unsigned int flags, unsigned long size, unsigned long mod_time) {
+ImageLoaderData* createImageLoaderData(int fd, const char* file_name, unsigned int flags, unsigned long size, unsigned long mod_time) {
     ImageLoaderData* data = calloc(1, sizeof(ImageLoaderData));
     data->fd = fd;
     data->name = file_name;
     data->flags = flags;
 
-    if (size) {
+    if (size)
         image_loader_set_stats(data, size, mod_time);
-    } else if (context->flags & IMAGE_LOADER_LOAD_STATS)
-        image_loader_load_stats(data);
     return data;
 }
 
 ImageLoaderData* image_loader_add_from_fd_with_flags_and_stats(ImageLoaderContext* context, int fd, const char* file_name, unsigned int flags, unsigned long size, unsigned long mod_time) {
-    return image_loader_add_data(context, createImageLoaderData(context, fd, file_name, flags, size, mod_time), context->num);
+    return image_loader_add_data(context, createImageLoaderData(fd, file_name, flags, size, mod_time), context->num);
 }
 
 ImageLoaderData* image_loader_add_from_fd_with_flags(ImageLoaderContext* context, int fd, const char* file_name, unsigned int flags) {

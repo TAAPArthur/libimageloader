@@ -55,9 +55,9 @@ int image_loader_create_memory_file(const char* name, int size);
 
 void image_loader_load_raw_image(ImageLoaderData* data, const char* src, int width, int height, int stride, int channels);
 
-ImageLoaderData* createImageLoaderData(const ImageLoaderContext* context, int fd, const char* file_name, unsigned int flags, unsigned long size, unsigned long mod_time);
-ImageLoaderData* createSimpleImageLoaderData(const ImageLoaderContext* context, const char* file_name, unsigned int flags) {
-    return createImageLoaderData(context, -1, file_name, flags, 0, 0);
+ImageLoaderData* createImageLoaderData(int fd, const char* file_name, unsigned int flags, unsigned long size, unsigned long mod_time);
+ImageLoaderData* createSimpleImageLoaderData(const char* file_name, unsigned int flags) {
+    return createImageLoaderData(-1, file_name, flags, 0, 0);
 };
 
 #endif

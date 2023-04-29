@@ -18,7 +18,7 @@ void curl_close(ImageLoaderData* parent) {
     curl_global_cleanup();
 }
 
-int curl_open(ImageLoaderContext* context, int _, ImageLoaderData* parent) {
+int curl_open(ImageLoaderData* parent) {
     if (!strstr(parent->name, "://"))
         return -1;
     int ret = -1;
@@ -41,7 +41,7 @@ int curl_open(ImageLoaderContext* context, int _, ImageLoaderData* parent) {
     return 0;
 }
 
-ImageLoaderData* curl_next(ImageLoaderContext* context, ImageLoaderData* parent) {
+ImageLoaderData* curl_next(ImageLoaderData* parent) {
     CURL* curl_handle = parent->parent_data;
     if (parent->scratch++)
         return NULL;
@@ -59,6 +59,6 @@ ImageLoaderData* curl_next(ImageLoaderContext* context, ImageLoaderData* parent)
     int pos = lseek(fd, 0, SEEK_CUR);
     lseek(fd, 0, SEEK_SET);
 
-    return createImageLoaderData(context, fd, parent->name, IMG_DATA_KEEP_OPEN, pos, getCurrentTime());
+    return createImageLoaderData(fd, parent->name, IMG_DATA_KEEP_OPEN, pos, getCurrentTime());
 }
 #endif

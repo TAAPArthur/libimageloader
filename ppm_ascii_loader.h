@@ -52,9 +52,9 @@ readNumberEnd:
     return i;
 }
 
-int ppm_ascii_load(ImageLoaderContext* context, int fd, ImageLoaderData* data) {
+int ppm_ascii_load(ImageLoaderData* data) {
     char buffer[256] = {0};
-    int ret = safe_read(fd, buffer, 3);
+    int ret = safe_read(data->fd, buffer, 3);
     const unsigned int type = buffer[1] - '0';
     if (buffer[0] != 'P' || type >=7) {
         return -1;
@@ -65,21 +65,21 @@ int ppm_ascii_load(ImageLoaderContext* context, int fd, ImageLoaderData* data) {
 
     int offset = 0;
     buffer[0] = 0;
-    offset = readNumber(fd, buffer, offset, sizeof(buffer), &data->image_width);
-    offset = readNumber(fd, buffer, offset, sizeof(buffer), &data->image_height);
+    offset = readNumber(data->fd, buffer, offset, sizeof(buffer), &data->image_width);
+    offset = readNumber(data->fd, buffer, offset, sizeof(buffer), &data->image_height);
 
     int size = data->image_width * data->image_height * 4;
     data->data = malloc(size);
 
     int scale = 255;
     if (type != 4 && type != 1) {
-        offset = readNumber(fd, buffer, offset, sizeof(buffer), &scale);
+        offset = readNumber(data->fd, buffer, offset, sizeof(buffer), &scale);
         scale = 256 / (scale + 1);
     }
     int byte;
     if (type <= 2) {
         for (int i = 0; i < size; i+=4) {
-            offset = readNumber(fd, buffer, offset, sizeof(buffer), &byte);
+            offset = readNumber(data->fd, buffer, offset, sizeof(buffer), &byte);
             if (type == 1) {
                 byte = !byte;
             }
@@ -91,7 +91,7 @@ int ppm_ascii_load(ImageLoaderContext* context, int fd, ImageLoaderData* data) {
     } else if (type == 3) {
         for (int i = 0; i < size; i+=4) {
             for (int n = 2; n >= 0; n--){
-                offset = readNumber(fd, buffer, offset, sizeof(buffer), &byte);
+                offset = readNumber(data->fd, buffer, offset, sizeof(buffer), &byte);
                 ((char*)data->data)[i + n] = byte * scale;
             }
             ((char*)data->data)[i + 3] = 0;

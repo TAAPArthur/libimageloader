@@ -6,15 +6,15 @@
 #include <stdlib.h>
 #include <string.h>
 
-int dir_open(ImageLoaderContext* context, int fd, ImageLoaderData* parent) {
-    DIR* d = fdopendir(fd);
+int dir_open(ImageLoaderData* parent) {
+    DIR* d = fdopendir(parent->fd);
     if (!d)
         return -1;
     parent->parent_data = d;
     return 0;
 }
 
-ImageLoaderData* dir_next(ImageLoaderContext* context, ImageLoaderData* parent) {
+ImageLoaderData* dir_next(ImageLoaderData* parent) {
     struct dirent * dir;
     DIR* d = parent->parent_data;
     const char*path = parent->name;
@@ -27,7 +27,7 @@ ImageLoaderData* dir_next(ImageLoaderContext* context, ImageLoaderData* parent) 
         if (path[base_len-1] != '/')
             strcat(name, "/");
         strcat(name, dir->d_name);
-        return createSimpleImageLoaderData(context, name, IMG_DATA_FREE_NAME);
+        return createSimpleImageLoaderData(name, IMG_DATA_FREE_NAME);
     }
     return NULL;
 }
