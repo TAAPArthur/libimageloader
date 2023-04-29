@@ -15,9 +15,9 @@ typedef struct {
     int index;
 } miniz_state_t;
 
-int miniz_open(ImageLoaderContext* context, int fd, ImageLoaderData* parent) {
+int miniz_open(ImageLoaderData* parent) {
     miniz_state_t * state = calloc(1, sizeof(miniz_state_t));
-    state->file = safe_dup_and_fd_open(fd);
+    state->file = safe_dup_and_fd_open(parent->fd);
     if (!state->file) {
         return -1;
     }
@@ -30,7 +30,7 @@ int miniz_open(ImageLoaderContext* context, int fd, ImageLoaderData* parent) {
     return 0;
 }
 
-ImageLoaderData* miniz_next(ImageLoaderContext* context, ImageLoaderData* parent) {
+ImageLoaderData* miniz_next(ImageLoaderData* parent) {
     miniz_state_t * state = parent->parent_data;
     unsigned index;
     while ((index = state->index++) < mz_zip_reader_get_num_files(&state->zip_archive)) {
@@ -48,7 +48,7 @@ ImageLoaderData* miniz_next(ImageLoaderContext* context, ImageLoaderData* parent
         mz_zip_reader_extract_to_callback(&state->zip_archive, index, miniz_file_write_func, &fd, 0);
         lseek(fd, 0, SEEK_SET);
 
-        return createImageLoaderData(context, fd, name, IMG_DATA_KEEP_OPEN | IMG_DATA_FREE_NAME,
+        return createImageLoaderData(fd, name, IMG_DATA_KEEP_OPEN | IMG_DATA_FREE_NAME,
             file_stat.m_uncomp_size, parent->mod_time);
     }
     return NULL;

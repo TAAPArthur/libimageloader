@@ -6,13 +6,12 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-int pipe_open(ImageLoaderContext* context, int pipeFD, ImageLoaderData* parent) {
+int pipe_open(ImageLoaderData* parent) {
     return parent->fd == -1;
 }
 
-ImageLoaderData* pipe_next(ImageLoaderContext* context, ImageLoaderData* parent) {
+ImageLoaderData* pipe_next(ImageLoaderData* parent) {
     ImageLoaderData* data = NULL;
-    int pipeFD = (long)parent->parent_data;
     int fd = image_loader_create_memory_file(parent->name, 0);
     if (fd == -1) {
         return NULL;
@@ -22,7 +21,7 @@ ImageLoaderData* pipe_next(ImageLoaderContext* context, ImageLoaderData* parent)
     int ret;
     char buffer[255];
     do {
-        ret = safe_read(pipeFD, buffer, sizeof(buffer));
+        ret = safe_read(parent->fd, buffer, sizeof(buffer));
         if (ret == -1 || ret && safe_write(fd, buffer, ret) == -1) {
             goto close_fd;
         }
@@ -32,7 +31,7 @@ ImageLoaderData* pipe_next(ImageLoaderContext* context, ImageLoaderData* parent)
     if(end != 0) {
         lseek(fd, 0, SEEK_SET);
         int temp_fd = dup(fd);
-        data = createImageLoaderData(context, temp_fd, parent->name, IMG_DATA_KEEP_OPEN, end, getCurrentTime());
+        data = createImageLoaderData(temp_fd, parent->name, IMG_DATA_KEEP_OPEN, end, getCurrentTime());
     }
 close_fd:
 
