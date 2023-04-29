@@ -340,6 +340,8 @@ static int _image_loader_load_image(ImageLoaderContext* context, ImageLoaderData
             continue;
         if (fd == -1 && !(img_loaders[i].flags & NO_FD))
             continue;
+        if (context->flags & IMAGE_LOADER_DISABLE_RECURSIVE_DIR_LOADER && data->parent_loader == &img_loaders[IMG_LOADER_DIR] && i == IMG_LOADER_DIR)
+            continue;
         assert(!data->data);
         if (image_loader_load_with_loader(context, fd, data, &img_loaders[i]) == 0) {
             return 0;
@@ -387,6 +389,7 @@ ImageLoaderData* image_loader_load_image(ImageLoaderContext* context, int index)
             IMG_LIB_LOG("Loading next image from multi loader %s at index %d\n", data->name, index);
             ImageLoaderData* newImage = data->loader->img_next(context, data);
             if (newImage) {
+                newImage->parent_loader = data->loader;
                 image_loader_add_data(context, newImage, index);
                 return image_loader_load_image(context, index);
             }

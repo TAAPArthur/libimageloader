@@ -27,9 +27,7 @@ ImageLoaderData* dir_next(ImageLoaderContext* context, ImageLoaderData* parent) 
         if (path[base_len-1] != '/')
             strcat(name, "/");
         strcat(name, dir->d_name);
-        if (dir->d_type != DT_DIR || !(context->flags & IMAGE_LOADER_DISABLE_RECURSIVE_DIR_LOADER)) {
-            return createSimpleImageLoaderData(context, name, IMG_DATA_FREE_NAME);
-        }
+        return createSimpleImageLoaderData(context, name, IMG_DATA_FREE_NAME);
     }
     return NULL;
 }

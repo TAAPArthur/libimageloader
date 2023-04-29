@@ -20,6 +20,7 @@ typedef struct ImageLoader ImageLoader;
 typedef struct ImageLoaderData {
     unsigned int id;
     const ImageLoader* loader;
+    const ImageLoader* parent_loader;
     const char* name;
     int fd;
     unsigned int image_width;
