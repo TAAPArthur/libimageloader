@@ -4,22 +4,23 @@ for arg in "$@"; do
     case "$arg" in
         --enable-all)GLOBAL_DEFAULT=1;;
         --disable-all)GLOBAL_DEFAULT=0;;
-        --prefix)echo "PREFIX=$2"; shift ;;
-        --prefix=*)echo "PREFIX=${1#--prefix=}" ;;
+        --prefix)PREFIX=$2; shift ;;
+        --prefix=*)PREFIX=${1#--prefix=} ;;
     esac
     shift
 done
+[ -z "$PREFIX" ] || echo "PREFIX=$PREFIX"
 
 for lib in archive Imlib2 spng curl stb/stb_image.h miniz mupdf; do
     LIB=$(echo "$lib" | sed 's|\w*/\(\w*\).h|\1|' | tr '[:lower:]' '[:upper:]' );
-    [ "${lib%.h}.h" = "${lib}" ] || echo "LDFLAGS_${LIB}_1 = -l${lib}";
     echo "CPPFLAGS_${LIB}_0 = -DNO_${LIB}_LOADER"
     if [ -n "$GLOBAL_DEFAULT" ]; then
         echo "HAVE_$LIB ?= $GLOBAL_DEFAULT"
     else
-        if [ "${lib%.h}.h" = "${lib}" ] ; then
+        if [ "${lib%.h}.h" = "${lib}" ] && [ -e "${PREFIX:-/usr/}/include/$lib" ] || [ -e "${lib%.h}.h" ]; then
             ! printf "#include <%s>\nvoid main(){}" "$lib" | ${CC:-cc} -o /dev/null -x c - 2>/dev/null
         else
+            [ "${lib%.h}.h" = "${lib}" ] || echo "LDFLAGS_${LIB}_1 = -l${lib}";
             ! echo "void main(){}" | ${CC:-cc} "-l$lib" -o /dev/null -x c - 2>/dev/null
         fi
         echo "HAVE_$LIB ?= $?"
