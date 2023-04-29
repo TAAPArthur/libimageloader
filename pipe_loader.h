@@ -6,15 +6,20 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-int pipe_load(ImageLoaderContext* context, int pipeFD, ImageLoaderData* parent) {
+int pipe_open(ImageLoaderContext* context, int pipeFD, ImageLoaderData* parent) {
+    return parent->fd == -1;
+}
+
+ImageLoaderData* pipe_next(ImageLoaderContext* context, ImageLoaderData* parent) {
+    ImageLoaderData* data = NULL;
+    int pipeFD = (long)parent->parent_data;
     int fd = image_loader_create_memory_file(parent->name, 0);
     if (fd == -1) {
-        return fd;
+        return NULL;
     }
 
     int buf_size =  1 << 12;
     int ret;
-    int err = -1;
     char buffer[255];
     do {
         ret = safe_read(pipeFD, buffer, sizeof(buffer));
@@ -24,20 +29,16 @@ int pipe_load(ImageLoaderContext* context, int pipeFD, ImageLoaderData* parent) 
     } while (ret);
 
     int end = lseek(fd, 0, SEEK_CUR);
-    lseek(fd, 0, SEEK_SET);
-    ImageLoaderData* data = NULL;
-    while (1) {
+    if(end != 0) {
+        lseek(fd, 0, SEEK_SET);
         int temp_fd = dup(fd);
-        data = image_loader_add_from_fd_with_flags_and_stats(context, temp_fd, parent->name, IMG_DATA_KEEP_OPEN, end, getCurrentTime());
-        if (!image_loader_load_image(context, data)) {
-            break;
-        }
-        if (lseek(fd, 0, SEEK_CUR) == end)
-            break;
+        data = createImageLoaderData(context, temp_fd, parent->name, IMG_DATA_KEEP_OPEN, end, getCurrentTime());
     }
-    err = 0;
 close_fd:
+
     close(fd);
-    return 0;
+    return data;
 }
+
+void pipe_close() {}
 #endif

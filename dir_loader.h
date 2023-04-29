@@ -6,26 +6,35 @@
 #include <stdlib.h>
 #include <string.h>
 
-int dir_load(ImageLoaderContext* context, int fd, ImageLoaderData* data) {
-    const char*path = data->name;
-    int base_len = strlen(path);
+int dir_open(ImageLoaderContext* context, int fd, ImageLoaderData* parent) {
     DIR* d = fdopendir(fd);
     if (!d)
         return -1;
+    parent->parent_data = d;
+    return 0;
+}
+
+ImageLoaderData* dir_next(ImageLoaderContext* context, ImageLoaderData* parent) {
     struct dirent * dir;
-    int count = 0;
+    DIR* d = parent->parent_data;
+    const char*path = parent->name;
+    int base_len = strlen(path);
     while ((dir = readdir(d)) != NULL) {
         if (dir->d_name[0] == '.')
             continue;
-        char* buf = malloc(base_len + strlen(dir->d_name) + 2);
-        strcpy(buf, path);
+        char* name = malloc(base_len + strlen(dir->d_name) + 2);
+        strcpy(name, path);
         if (path[base_len-1] != '/')
-            strcat(buf, "/");
-        strcat(buf, dir->d_name);
-        if (dir->d_type != DT_DIR || !(context->flags & IMAGE_LOADER_DISABLE_RECURSIVE_DIR_LOADER))
-            image_loader_add_file(context, buf)->flags |= IMG_DATA_FREE_NAME;
+            strcat(name, "/");
+        strcat(name, dir->d_name);
+        if (dir->d_type != DT_DIR || !(context->flags & IMAGE_LOADER_DISABLE_RECURSIVE_DIR_LOADER)) {
+            return createSimpleImageLoaderData(context, name, IMG_DATA_FREE_NAME);
+        }
     }
-    closedir(d);
-    return 0;
+    return NULL;
+}
+
+void dir_close(ImageLoaderData* data) {
+    closedir(data->parent_data);
 }
 #endif

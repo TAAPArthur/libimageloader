@@ -19,17 +19,21 @@ typedef struct ImageLoader ImageLoader;
 typedef struct ImageLoaderData {
     unsigned int id;
     const ImageLoader* loader;
-    int fd;
     const char* name;
+    int fd;
     unsigned int image_width;
     unsigned int image_height;
     void* image_data;
-    char* data;
+    union {
+        void* parent_data;
+        char* data;
+    };
     char stats_loaded;
     long size;
     long mod_time;
     int ref_count;
     int flags;
+    unsigned char scratch;
 } ImageLoaderData;
 
 typedef struct ImageLoaderContext {
@@ -42,11 +46,16 @@ typedef struct ImageLoaderContext {
 } ImageLoaderContext;
 
 void image_loader_set_stats(ImageLoaderData*data, long size, long mod_time);
-ImageLoaderData* image_loader_load_image(ImageLoaderContext* context, ImageLoaderData*data);
 
 void image_loader_load_stats(ImageLoaderData*data);
 
 int image_loader_create_memory_file(const char* name, int size);
 
 void image_loader_load_raw_image(ImageLoaderData* data, const char* src, int width, int height, int stride, int channels);
+
+ImageLoaderData* createImageLoaderData(const ImageLoaderContext* context, int fd, const char* file_name, unsigned int flags, unsigned long size, unsigned long mod_time);
+ImageLoaderData* createSimpleImageLoaderData(const ImageLoaderContext* context, const char* file_name, unsigned int flags) {
+    return createImageLoaderData(context, -1, file_name, flags, 0, 0);
+};
+
 #endif
