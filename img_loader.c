@@ -325,7 +325,10 @@ static int image_loader_load_with_loader(ImageLoaderContext* context, int fd, Im
 
 static int _image_loader_load_image(ImageLoaderContext* context, ImageLoaderData*data, int multi_lib_only) {
     IMG_LIB_LOG("Loading file %s\n", data->name);
+    if (data->flags & IMG_DATA_FAILED_TO_LOAD)
+        return -1;
     int fd = image_data_get_fd(data, NULL);
+
     if (data->loader)
         return image_loader_load_with_loader(context,fd, data, data->loader);
 
@@ -349,6 +352,8 @@ static int _image_loader_load_image(ImageLoaderContext* context, ImageLoaderData
         close(fd);
         data->fd = -1;
     }
+
+    data->flags |= IMG_DATA_FAILED_TO_LOAD;
     IMG_LIB_LOG("Could not load %s\n", data->name);
     return -1;
 }
