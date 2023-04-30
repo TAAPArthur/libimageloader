@@ -43,12 +43,20 @@ static void load_test(ImageLoaderContext* c) {
 
 static void simple_load_test(const char** args, unsigned mask) {
     // Load all files in args
-    ImageLoaderContext* c = image_loader_create_context(args, 0, 0);
-    if (mask) {
-        image_loader_enable_loader_only_mask(c, mask | (1 << IMG_LOADER_DIR));
+    for (int n = 0; n < 2; n++) {
+        ImageLoaderContext* c = image_loader_create_context(args, 0, 0);
+        if (mask) {
+            image_loader_enable_loader_only_mask(c, mask | (1 << IMG_LOADER_DIR));
+        }
+        if(n) {
+            for (int i = 0; i < image_loader_get_num(c); i++) {
+                assert(image_loader_open(c, i, NULL) == image_loader_open(c, i, NULL));
+            }
+        } else {
+            load_test(c);
+        }
+        image_loader_destroy_context(c); // Free all resources
     }
-    load_test(c);
-    image_loader_destroy_context(c); // Free all resources
 }
 
 static int starting_number_of_fds;
