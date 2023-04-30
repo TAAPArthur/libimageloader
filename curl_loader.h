@@ -30,7 +30,6 @@ int curl_open(ImageLoaderData* parent) {
         curl_global_cleanup();
         return -1;
     }
-    parent->scratch = 0;
 
     /* set URL to get here */
     curl_easy_setopt(parent->parent_data, CURLOPT_URL, parent->name);
@@ -43,7 +42,7 @@ int curl_open(ImageLoaderData* parent) {
 
 ImageLoaderData* curl_next(ImageLoaderData* parent) {
     CURL* curl_handle = parent->parent_data;
-    if (parent->scratch++)
+    if (parent->flags & IMG_MARK)
         return NULL;
 
     int fd = image_loader_create_memory_file(parent->name, 0);

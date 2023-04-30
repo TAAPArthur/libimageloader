@@ -175,11 +175,11 @@ void image_loader_load_raw_image(ImageLoaderData*data, const char* src, int widt
 void image_loader_set_stats(ImageLoaderData*data, long size, long mod_time) {
     data->size = size;
     data->mod_time = mod_time;
-    data->stats_loaded = 1;
+    data->flags |= IMG_HAS_STATS;
 }
 
 void image_loader_load_stats(ImageLoaderData*data) {
-    if (data->stats_loaded)
+    if (data->flags & IMG_HAS_STATS)
         return;
     struct stat statbuf;
     int just_opened = 0;
@@ -191,7 +191,7 @@ void image_loader_load_stats(ImageLoaderData*data) {
         close(fd);
         data->fd = -1;
     }
-    data->stats_loaded = 1;
+    data->flags |= IMG_HAS_STATS;
 }
 
 
@@ -264,6 +264,7 @@ void image_loader_close_force(ImageLoaderContext*context, ImageLoaderData* data,
         }
         if (data->fd != -1)
             close(data->fd);
+        data->flags = 0;
         data->fd = -1;
     }
 }

@@ -10,12 +10,11 @@ int imlib2_open(ImageLoaderData* parent) {
 	if ((data->parent_data = imlib_load_image_fd(fd2, parent->name)) == NULL) {
 		return -1;
     }
-    parent->scratch = 0;
     return 0;
 }
 
 ImageLoaderData* imlib2_next(ImageLoaderData* parent) {
-    if (parent->scratch++)
+    if (parent->flags & IMG_MARK)
         return NULL;
     imlib_context_set_image(parent->parent_data);
     int size = imlib_image_get_width() * imlib_image_get_height() * 4;
