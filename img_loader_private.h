@@ -25,7 +25,7 @@ typedef struct ImageLoaderData {
     int fd;
     unsigned int image_width;
     unsigned int image_height;
-    void* image_data;
+
     union {
         void* parent_data;
         char* data;

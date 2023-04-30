@@ -102,7 +102,7 @@ static const ImageLoader img_loaders[] = {
     [IMG_LOADER_ARCHIVE] = CREATE_PARENT_LOADER(archive, MULTI_LOADER),
 #endif
 #ifndef NO_IMLIB2_LOADER
-    [IMG_LOADER_IMLIB2] = CREATE_LOADER(imlib2),
+    [IMG_LOADER_IMLIB2] = CREATE_PARENT_LOADER(imlib2, MULTI_LOADER),
 #endif
 #ifndef NO_CURL_LOADER
     [IMG_LOADER_CURL] = CREATE_PARENT_LOADER(curl, MULTI_LOADER | NO_FD | NO_SEEK),
@@ -260,7 +260,6 @@ void image_loader_close_force(ImageLoaderContext*context, ImageLoaderData* data,
             } else {
                 free(data->data);
             }
-            data->image_data = NULL;
             data->data = data->parent_data = NULL;
         }
         if (data->fd != -1)
