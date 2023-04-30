@@ -2,10 +2,6 @@ PREFIX = /usr
 PRG=img_loader
 LIB=libimgloader.so
 
-HAVE_LINUX ?= 1
-CPPFLAGS_LINUX_1 = -DHAVE_LINUX
-CPPFLAGS += $(CPPFLAGS_LINUX_$(HAVE_LINUX))
-
 -include config.mk
 
 libimgloader.so: $(PRG).o
@@ -27,7 +23,7 @@ tests/test: tests/tests.c $(PRG).c
 	$(CC) $(CFLAGS) $(CPPFLAGS) -o $@ $^ $(LDFLAGS)
 
 tests/posix_test: CFLAGS += -g
-tests/posix_test: CPPFLAGS += -DVERBOSE -UHAVE_LINUX -DDEBUG
+tests/posix_test: CPPFLAGS += -DVERBOSE -UNO_MEMFD_CREATE -DDEBUG
 tests/posix_test: tests/tests.c $(PRG).c
 	$(CC) $(CFLAGS) $(CPPFLAGS) -o $@ $^ $(LDFLAGS)
 
