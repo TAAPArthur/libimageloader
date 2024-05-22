@@ -81,6 +81,13 @@ ImageLoaderData* image_loader_open(ImageLoaderContext* context, int index, Image
  */
 void image_loader_close(ImageLoaderContext*context, ImageLoaderData* data);
 
+
+/**
+ * Removes the image at the given index from the context.
+ * The image data is still valid if it was already opened and a call to
+ * image_loader_close is needed to free the resources
+ */
+void image_loader_remove_image_at_index(ImageLoaderContext* context, int n);
 void image_loader_remove_all_invalid_images(ImageLoaderContext* context);
 
 
